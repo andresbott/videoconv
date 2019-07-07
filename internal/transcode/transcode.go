@@ -18,6 +18,7 @@ type Transcoder struct {
 	cf            config.Conf
 	video         *fmfile.File
 	videoSettings []config.VideoSetting
+	relativePath  string
 }
 
 func NewTranscoder() *Transcoder {
@@ -90,6 +91,13 @@ func (t *Transcoder) prepare() error {
 		return err
 	}
 
+	relativePath, err := filepath.Rel(t.cf.InputFolder, t.video.FullPath())
+	if err != nil {
+		log.Error(err)
+		t.handleTranscodeError()
+	}
+	t.relativePath = filepath.Dir(relativePath)
+
 	return nil
 }
 
@@ -121,15 +129,9 @@ func (t *Transcoder) transcodeVideo() {
 	}
 
 	// move finalized files
-	relativePath, err := filepath.Rel(t.cf.InputFolder, t.video.FullPath())
-	if err != nil {
-		log.Error(err)
-		t.handleTranscodeError()
-	}
-	relativePath = filepath.Dir(relativePath)
-	outPutPath := filepath.Clean(t.cf.OutputFolder + "/" + relativePath)
 
-	err = os.MkdirAll(outPutPath, 0750)
+	outPutPath := filepath.Clean(t.cf.OutputFolder + "/" + t.relativePath)
+	err := os.MkdirAll(outPutPath, 0750)
 	if err != nil {
 		log.Error(err)
 		t.handleTranscodeError()
@@ -179,8 +181,15 @@ func (t *Transcoder) handleTranscodeError() {
 	}
 	// move the original to ignore
 
+	ignorepath := filepath.Clean(t.cf.IgnoreDir + "/" + t.relativePath)
+	err := os.MkdirAll(ignorepath, 0750)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
 	log.Warn("moving file: " + t.video.FullPath() + " to ignore dir")
-	err := fileManager.MoveFile(t.video.FullPath(), t.cf.IgnoreDir+"/"+t.video.Name(), false)
+	err = fileManager.MoveFile(t.video.FullPath(), ignorepath+"/"+t.video.Name(), false)
 	if err != nil {
 		log.Error(err)
 	}
@@ -192,6 +201,9 @@ func (t *Transcoder) runffmpeg(cmd string, videoTmpOut string) error {
 	binary := "/usr/bin/ffmpeg"
 
 	args := []string{}
+
+	args = append(args, "-loglevel")
+	args = append(args, "error")
 
 	args = append(args, "-i")
 	args = append(args, t.video.FullPath())
@@ -208,7 +220,7 @@ func (t *Transcoder) runffmpeg(cmd string, videoTmpOut string) error {
 
 	e := exec.Command(binary, args...)
 	//e.Stdout = os.Stdout
-	//e.Stderr = os.Stderr
+	e.Stderr = os.Stderr
 	err := e.Run()
 	if err != nil {
 		return err

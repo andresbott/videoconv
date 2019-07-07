@@ -58,9 +58,9 @@ func (c *Conf) VideoSettingsByExt(ext string) ([]VideoSetting, error) {
 func NewConfig() Conf {
 
 	viper.SetConfigName(configFileName) // name of config file (without extension)
-	viper.AddConfigPath(".")                   // optionally look for config in the working directory
-	err := viper.ReadInConfig()                // Find and read the config file
-	if err != nil {                            // Handle errors reading the config file
+	viper.AddConfigPath(".")            // optionally look for config in the working directory
+	err := viper.ReadInConfig()         // Find and read the config file
+	if err != nil {                     // Handle errors reading the config file
 		log.Fatal("Fatal error config file: %s \n", err)
 	}
 	c := Conf{}
@@ -120,7 +120,7 @@ func NewConfig() Conf {
 	// video in extensions
 	vExts := NewVideoExtensions(defaultVideoExtension)
 	confVExts := viper.Get("video_extensions")
-	if confVExts != nil{
+	if confVExts != nil {
 		confVExtsMap := confVExts.([]interface{})
 
 		if len(confVExtsMap) > 0 {
@@ -135,7 +135,6 @@ func NewConfig() Conf {
 		}
 	}
 	c.videoExtensions = *vExts
-
 
 	// video settings
 	videoSettings := NewVideoSettings(defaultVideoSettings)
@@ -163,10 +162,10 @@ func NewConfig() Conf {
 	// poll interval
 	c.PollInterval = viper.GetInt("poll_interval")
 	if c.PollInterval == 0 {
-		log.Warn("poll interval improperly defined, using default: " + string(defaultPollInterval) + " seconds")
+		log.Warn("poll interval improperly defined, using default: " + strconv.Itoa(defaultPollInterval) + " seconds")
 		c.PollInterval = defaultPollInterval
-	}else {
-		log.Info("Using poll interval: " + strconv.Itoa(c.PollInterval)+" seconds")
+	} else {
+		log.Info("Using poll interval: " + strconv.Itoa(c.PollInterval) + " seconds")
 	}
 
 	return c
