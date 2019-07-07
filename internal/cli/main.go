@@ -1,10 +1,10 @@
 package cli
 
 import (
-	"git.andresbott.com/Utilities/go-video-process/internal/config"
-	"git.andresbott.com/Utilities/go-video-process/internal/transcode"
-	"github.com/spf13/cobra"
 	"fmt"
+	"github.com/AndresBott/videoconv/internal/config"
+	"github.com/AndresBott/videoconv/internal/transcode"
+	"github.com/spf13/cobra"
 	"os"
 	"time"
 )
@@ -30,14 +30,12 @@ func init() {
 	rootCmd.AddCommand(startCmd)
 }
 
-
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 }
-
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
@@ -48,10 +46,9 @@ var versionCmd = &cobra.Command{
 }
 
 var startCmd = &cobra.Command{
-	Use: "start",
+	Use:   "start",
 	Short: "Start the daemon",
 	Run: func(cmd *cobra.Command, args []string) {
-
 
 		tr := transcode.NewTranscoder()
 		inte := tr.Interval()
@@ -63,4 +60,3 @@ var startCmd = &cobra.Command{
 		}
 	},
 }
-

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"git.andresbott.com/Utilities/go-video-process/internal/cli"
+	"github.com/AndresBott/videoconv/internal/cli"
 )
 
 func main() {
