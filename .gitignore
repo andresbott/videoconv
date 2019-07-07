@@ -1,0 +1,12 @@
+
+
+# linux related
+.directory
+
+
+# User-specific stuff:
+.idea/
+*.iml
+
+
+

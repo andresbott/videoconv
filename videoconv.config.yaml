@@ -1,0 +1,32 @@
+input_dir: sample-data/in
+output_dir: sample-data/out
+tmp_dir: sample-data/tmp
+ignore_dir: sample-data/ignore
+
+log_level: "info"
+
+poll_interval: 10
+
+#video_extensions:
+#
+#  - extension: "mp4"
+#    videoSettingName:
+#      - "320_sample"
+#      - "480_sample"
+#
+#  - extension: "wmv"
+#    videoSettingName:
+#      - "480_to_mp4_sample"
+
+video_settings:
+
+  - name: "720_encoded_sample"
+    cmd: -vf 'scale=-2:min(720\,ih-mod(ih\,2))' -strict -2 -c:v libx264 -crf 23 -preset veryslow  -t 30
+    out_extension: "mp4"
+
+
+  - name: "half_sample3"
+    cmd: -vf scale=iw*.5:-1 -strict -2 -t 10
+
+
+threads: 2
