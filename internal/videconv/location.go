@@ -85,9 +85,9 @@ func newLocation(in interface{}) (*location, error) {
 
 }
 
-// Overlay checks for an overlay configuration file and if found will load it's content
-// Overlay returns a copy of the location struct in order to be able to reload the file on every check
-func (loc *location) Overlay(fname string) (*location, error) {
+// loadOverlay checks for an overlay configuration file and if found will load it's content
+// loadOverlay returns a copy of the location struct in order to be able to reload the file on every check
+func (loc *location) loadOverlay(fname string) (*location, error) {
 	nl := location{
 		path:            loc.path,
 		inputDir:        loc.inputDir,

@@ -23,7 +23,8 @@ func TestConfHandler_Load(t *testing.T) {
 			name: "happyPathMainConf",
 			file: "testdata/main.yaml",
 			expected: App{
-				ConfigFile: "testdata/main.yaml",
+				ConfigFile:   "testdata/main.yaml",
+				OverlayFname: "videoconv.yaml",
 				locations: []location{
 					{
 						path:      getCurrentAbsPath(),

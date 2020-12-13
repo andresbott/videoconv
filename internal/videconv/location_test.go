@@ -70,7 +70,7 @@ func TestLocation(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			got, err = got.Overlay(tc.overlayFname)
+			got, err = got.loadOverlay(tc.overlayFname)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -96,7 +96,7 @@ func TestOverlayIsCopy(t *testing.T) {
 	a.appliedProfiles = []string{"a"}
 
 	// call overlay
-	b, _ := a.Overlay("")
+	b, _ := a.loadOverlay("")
 
 	// modify value of copy
 	b.appliedProfiles = []string{"b"}

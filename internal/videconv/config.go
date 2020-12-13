@@ -5,6 +5,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -13,6 +14,7 @@ const (
 	defaultPollDuration = "5m"
 	defaultThreads      = 1
 	defaultFFmpeg       = "/usr/bin/ffmpeg"
+	defaultOverlayFname = "videoconv.yaml"
 )
 
 // prepare the app to run
@@ -21,6 +23,10 @@ func (vc *App) loadConfig() error {
 	fileAbsPath, err := filepath.Abs(vc.ConfigFile)
 	if err != nil {
 		return err
+	}
+
+	if vc.OverlayFname == "" {
+		vc.OverlayFname = defaultOverlayFname
 	}
 
 	v := viper.New()
@@ -110,5 +116,6 @@ func (vc *App) loadConfig() error {
 	}
 
 	log.Info("loaded config file: " + fileAbsPath)
+	log.Infof("using video extensions: %s", strings.Join(vc.videoExtensions, ","))
 	return nil
 }
