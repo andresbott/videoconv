@@ -1,0 +1,24 @@
+log_level: "info"
+poll_interval: "10s" # poll interverl for new videos
+threads: 2 # change amount of threads
+ffmpeg: "" # Location for ffmpeg
+
+locations:
+  - base_path: "./"
+    input: "input"
+    output: "output"
+    tmp: "tmpdir"
+    fail: "faildir"
+
+  - base_path: "./location1"
+    profiles:
+      - "item2"
+
+profiles:
+  - name: "minimalist"
+    extension: "mp4"
+    codec: "h264"
+
+  - name: "item2"
+    extension: "mp4"
+    codec: "h264"

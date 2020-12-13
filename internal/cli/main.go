@@ -6,32 +6,30 @@ import (
 	"github.com/AndresBott/videoconv/internal/transcode"
 	"github.com/spf13/cobra"
 	"os"
-	"time"
 )
 
-var rootCmd = &cobra.Command{
-	Use:   "videoconv",
-	Short: "CLI utility to send slack messages",
-	Run: func(cmd *cobra.Command, args []string) {
-		// print help if no command is passed
-		if len(args) == 0 {
-			err := cmd.Help()
+func Run() {
 
-			if err != nil {
-				fmt.Println(err)
+	CobraCmd := cobra.Command{
+		Use:   "videoconv",
+		Short: "CLI utility to send slack messages",
+		Run: func(cmd *cobra.Command, args []string) {
+			// print help if no command is passed
+			if len(args) == 0 {
+				err := cmd.Help()
+
+				if err != nil {
+					fmt.Println(err)
+				}
+				os.Exit(0)
 			}
-			os.Exit(0)
-		}
-	},
-}
+		},
+	}
 
-func init() {
-	rootCmd.AddCommand(versionCmd)
-	rootCmd.AddCommand(startCmd)
-}
+	CobraCmd.AddCommand(versionCmd)
+	CobraCmd.AddCommand(startCmd)
 
-func Execute() {
-	if err := rootCmd.Execute(); err != nil {
+	if err := CobraCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
@@ -51,12 +49,9 @@ var startCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		tr := transcode.NewTranscoder()
-		inte := tr.Interval()
-		tr.Run()
-
 		for {
 			tr.Run()
-			time.Sleep(time.Duration(inte) * time.Second)
+			tr.Sleep()
 		}
 	},
 }

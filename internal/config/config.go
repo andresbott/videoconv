@@ -1,10 +1,10 @@
 package config
 
 import (
-	"github.com/AndresBott/f/fm/file"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"path/filepath"
 	"strconv"
 )
 
@@ -70,12 +70,13 @@ func NewConfig() Conf {
 	if in == "" {
 		log.Fatal("No input dir defined")
 	}
-	inDir, err := fmfile.NewFile(in)
+
+	abspath, err := filepath.Abs(in)
 	if err != nil {
 		log.Fatal("problem with input dir: " + err.Error())
 	} else {
-		log.Info("Using input dir: " + inDir.FullPath())
-		c.InputFolder = inDir.FullPath()
+		log.Info("Using input dir: " + abspath)
+		c.InputFolder = abspath
 	}
 
 	// output dir
@@ -83,12 +84,13 @@ func NewConfig() Conf {
 	if out == "" {
 		log.Fatal("No output dir defined")
 	}
-	absout, err := fmfile.NewFile(out)
+
+	abspath, err = filepath.Abs(out)
 	if err != nil {
 		log.Fatal("problem with output dir: " + err.Error())
 	} else {
-		log.Info("Using output dir: " + absout.FullPath())
-		c.OutputFolder = absout.FullPath()
+		log.Info("Using output dir: " + abspath)
+		c.OutputFolder = abspath
 	}
 
 	// tmp dir
@@ -96,12 +98,13 @@ func NewConfig() Conf {
 	if out == "" {
 		log.Fatal("No tmp dir defined")
 	}
-	absTmp, err := fmfile.NewFile(tmp)
+
+	abspath, err = filepath.Abs(tmp)
 	if err != nil {
 		log.Fatal("problem with tmp dir: " + err.Error())
 	} else {
-		log.Info("Using tmp dir: " + absTmp.FullPath())
-		c.TmpDir = absTmp.FullPath()
+		log.Info("Using tmp dir: " + abspath)
+		c.TmpDir = abspath
 	}
 
 	// ignore dir
@@ -109,12 +112,12 @@ func NewConfig() Conf {
 	if out == "" {
 		log.Fatal("No ignore dir defined")
 	}
-	absIgnore, err := fmfile.NewFile(ignore)
+	abspath, err = filepath.Abs(ignore)
 	if err != nil {
 		log.Fatal("problem with ignore dir: " + err.Error())
 	} else {
-		log.Info("Using ignore dir: " + absIgnore.FullPath())
-		c.IgnoreDir = absIgnore.FullPath()
+		log.Info("Using ignore dir: " + abspath)
+		c.IgnoreDir = abspath
 	}
 
 	// video in extensions

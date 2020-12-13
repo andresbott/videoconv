@@ -2,8 +2,6 @@ package transcode
 
 import (
 	"github.com/AndresBott/f/fm"
-	"github.com/AndresBott/f/fm/dir"
-	"github.com/AndresBott/f/fm/file"
 	"github.com/AndresBott/videoconv/internal/config"
 	log "github.com/sirupsen/logrus"
 	"os"
@@ -15,21 +13,23 @@ import (
 )
 
 type Transcoder struct {
-	cf            config.Conf
+	cfg           config.Conf
 	video         *fmfile.File
 	videoSettings []config.VideoSetting
 	relativePath  string
 }
 
+// create a new Transcoder
 func NewTranscoder() *Transcoder {
 	t := Transcoder{
-		cf: config.NewConfig(),
+		cfg: config.NewConfig(),
 	}
 	return &t
 }
 
-func (t *Transcoder) Interval() int {
-	return t.cf.PollInterval
+func (t *Transcoder) Sleep() {
+	d := time.Duration(t.cfg.PollInterval) * time.Second
+	time.Sleep(d)
 }
 
 func (t *Transcoder) Run() {
@@ -54,10 +54,10 @@ func (t *Transcoder) Run() {
 func (t *Transcoder) discoverFile() {
 
 	t.video = nil
-	exts := t.cf.Ext()
-	log.Info("searching video files in: " + t.cf.InputFolder + " with extension: " + strings.Join(exts, ","))
+	exts := t.cfg.Ext()
+	log.Info("searching video files in: " + t.cfg.InputFolder + " with extension: " + strings.Join(exts, ","))
 
-	inDir, err := fmdir.NewDir(t.cf.InputFolder)
+	inDir, err := fmdir.NewDir(t.cfg.InputFolder)
 	if err != nil {
 		log.Warn("input dir: " + err.Error())
 		return
@@ -85,13 +85,13 @@ func (t *Transcoder) discoverFile() {
 func (t *Transcoder) prepare() error {
 	var err error
 
-	t.videoSettings, err = t.cf.VideoSettingsByExt(t.video.Ext)
+	t.videoSettings, err = t.cfg.VideoSettingsByExt(t.video.Ext)
 
 	if err != nil {
 		return err
 	}
 
-	relativePath, err := filepath.Rel(t.cf.InputFolder, t.video.FullPath())
+	relativePath, err := filepath.Rel(t.cfg.InputFolder, t.video.FullPath())
 	if err != nil {
 		log.Error(err)
 		t.handleTranscodeError()
@@ -111,7 +111,7 @@ func (t *Transcoder) transcodeVideo() {
 	// loop over video settings and transcode them
 	for _, setting := range t.videoSettings {
 
-		videoTmpOut := t.cf.TmpDir + "/" + t.video.Basename() + "_" + setting.Name() + "." + setting.OutputExtension()
+		videoTmpOut := t.cfg.TmpDir + "/" + t.video.Basename() + "_" + setting.Name() + "." + setting.OutputExtension()
 		cmd := setting.Cmd()
 
 		// make sure the tmp file does not exist
@@ -130,7 +130,7 @@ func (t *Transcoder) transcodeVideo() {
 
 	// move finalized files
 
-	outPutPath := filepath.Clean(t.cf.OutputFolder + "/" + t.relativePath)
+	outPutPath := filepath.Clean(t.cfg.OutputFolder + "/" + t.relativePath)
 	err := os.MkdirAll(outPutPath, 0750)
 	if err != nil {
 		log.Error(err)
@@ -140,7 +140,7 @@ func (t *Transcoder) transcodeVideo() {
 
 	for _, setting := range t.videoSettings {
 
-		videoTmpOut := filepath.Clean(t.cf.TmpDir + "/" + t.video.Basename() + "_" + setting.Name() + "." + setting.OutputExtension())
+		videoTmpOut := filepath.Clean(t.cfg.TmpDir + "/" + t.video.Basename() + "_" + setting.Name() + "." + setting.OutputExtension())
 		videoOut := filepath.Clean(outPutPath + "/" + t.video.Basename() + "_" + setting.Name() + "." + setting.OutputExtension())
 
 		// make sure the destination file does not exist
@@ -170,7 +170,7 @@ func (t *Transcoder) handleTranscodeError() {
 	fileManager, _ := fm.NewFm("")
 	for _, setting := range t.videoSettings {
 
-		videoTmpOut := t.cf.TmpDir + "/" + t.video.Basename() + "_" + setting.Name() + "." + setting.OutputExtension()
+		videoTmpOut := t.cfg.TmpDir + "/" + t.video.Basename() + "_" + setting.Name() + "." + setting.OutputExtension()
 
 		// make sure the tmp file does not exist
 		log.Warn("deleting possible tmp file: \"" + videoTmpOut + "\"")
@@ -181,7 +181,7 @@ func (t *Transcoder) handleTranscodeError() {
 	}
 	// move the original to ignore
 
-	ignorepath := filepath.Clean(t.cf.IgnoreDir + "/" + t.relativePath)
+	ignorepath := filepath.Clean(t.cfg.IgnoreDir + "/" + t.relativePath)
 	err := os.MkdirAll(ignorepath, 0750)
 	if err != nil {
 		log.Error(err)
@@ -209,7 +209,7 @@ func (t *Transcoder) runffmpeg(cmd string, videoTmpOut string) error {
 	args = append(args, t.video.FullPath())
 
 	args = append(args, "-threads")
-	args = append(args, strconv.Itoa(t.cf.ProcessorThreads))
+	args = append(args, strconv.Itoa(t.cfg.ProcessorThreads))
 
 	se := strings.Split(cmd, " ")
 	for _, s := range se {
