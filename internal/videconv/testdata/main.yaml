@@ -1,7 +1,12 @@
-log_level: "info"
-poll_interval: "10s" # poll interverl for new videos
-threads: 2 # change amount of threads
-ffmpeg: "" # Location for ffmpeg
+log_level: "error"
+poll_interval: "10s"
+threads: 2
+ffmpeg: ""
+
+video_extensions:
+  - mp4
+  - wmv
+  - mkv
 
 locations:
   - base_path: "./"

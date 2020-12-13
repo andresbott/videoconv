@@ -1,4 +1,4 @@
-package config
+package config_old
 
 const (
 	Version             = "0.1.1"

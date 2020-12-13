@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/AndresBott/videoconv/internal/cli"
+	"github.com/AndresBott/videoconv/internal/cmd"
 )
 
 func main() {
-	cli.Run()
+	cmd.Run()
 }

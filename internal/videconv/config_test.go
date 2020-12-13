@@ -1,4 +1,4 @@
-package config2
+package videconv
 
 import (
 	"github.com/google/go-cmp/cmp"
@@ -17,13 +17,14 @@ func TestConfHandler_Load(t *testing.T) {
 	tcs := []struct {
 		name     string
 		file     string
-		expected ConfHandler
+		expected App
 	}{
 		{
 			name: "happyPathMainConf",
 			file: "testdata/main.yaml",
-			expected: ConfHandler{
-				locations: []Location{
+			expected: App{
+				ConfigFile: "testdata/main.yaml",
+				locations: []location{
 					{
 						path:      getCurrentAbsPath(),
 						inputDir:  "input",
@@ -40,10 +41,13 @@ func TestConfHandler_Load(t *testing.T) {
 						appliedProfiles: []string{"item2"},
 					},
 				},
-				logLevel:     "info",
-				threads:      2,
-				pollInterval: 10 * time.Second,
-				ffmpegBin:    "/usr/bin/ffmpeg",
+				logLevel:  "error",
+				threads:   2,
+				sleep:     10 * time.Second,
+				ffmpegBin: "/usr/bin/ffmpeg",
+				videoExtensions: []string{
+					"mp4", "wmv", "mkv",
+				},
 				profiles: map[string]Profile{
 					"minimalist": {
 						name:      "minimalist",
@@ -63,14 +67,16 @@ func TestConfHandler_Load(t *testing.T) {
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
 
-			cfg := ConfHandler{}
-			err := cfg.Load(tc.file)
+			app := App{
+				ConfigFile: tc.file,
+			}
+			err := app.loadConfig()
 
 			if err != nil && err.Error() != "video settings not defined" {
 				t.Fatal(err)
 			}
 
-			if diff := cmp.Diff(cfg, tc.expected, cmp.AllowUnexported(ConfHandler{}, Location{}, Profile{})); diff != "" {
+			if diff := cmp.Diff(app, tc.expected, cmp.AllowUnexported(App{}, location{}, Profile{})); diff != "" {
 				t.Errorf("%s: (-got +want)\n%s", tc.name, diff)
 			}
 

@@ -1,4 +1,4 @@
-package config2
+package videconv
 
 import (
 	"errors"
@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 )
 
-type Location struct {
+type location struct {
 	path            string
 	inputDir        string
 	outputDir       string
@@ -25,9 +25,9 @@ const (
 )
 
 // loadLocation uses a interface, loaded by viper, that contains the data needed for a video conversion location
-func newLocation(in interface{}) (*Location, error) {
+func newLocation(in interface{}) (*location, error) {
 
-	loc := Location{
+	loc := location{
 		path:      "",
 		inputDir:  defaultInputDir,
 		outputDir: defaultOutputDir,
@@ -86,9 +86,9 @@ func newLocation(in interface{}) (*Location, error) {
 }
 
 // Overlay checks for an overlay configuration file and if found will load it's content
-// Overlay returns a copy of the Location struct in order to be able to reload the file on every check
-func (loc *Location) Overlay(fname string) (*Location, error) {
-	nl := Location{
+// Overlay returns a copy of the location struct in order to be able to reload the file on every check
+func (loc *location) Overlay(fname string) (*location, error) {
+	nl := location{
 		path:            loc.path,
 		inputDir:        loc.inputDir,
 		outputDir:       loc.outputDir,

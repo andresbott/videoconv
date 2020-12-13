@@ -1,4 +1,4 @@
-package config2
+package videconv
 
 import (
 	"github.com/google/go-cmp/cmp"
@@ -11,7 +11,7 @@ func TestLocation(t *testing.T) {
 		name         string
 		in           map[interface{}]interface{}
 		overlayFname string
-		expected     *Location
+		expected     *location
 	}{
 		{
 			name: "default location",
@@ -19,7 +19,7 @@ func TestLocation(t *testing.T) {
 				"base_path": "./",
 				"applied":   []interface{}{"a", "b"},
 			},
-			expected: &Location{
+			expected: &location{
 				path:            getCurrentAbsPath(),
 				inputDir:        "in",
 				outputDir:       "out",
@@ -35,7 +35,7 @@ func TestLocation(t *testing.T) {
 				"base_path": "testdata/location1",
 				"applied":   []interface{}{"a", "b"},
 			},
-			expected: &Location{
+			expected: &location{
 				path:            getCurrentAbsPath() + "/testdata/location1",
 				inputDir:        "input",
 				outputDir:       "output",
@@ -51,7 +51,7 @@ func TestLocation(t *testing.T) {
 				"base_path": "testdata/location1",
 				"applied":   []interface{}{"a", "b"},
 			},
-			expected: &Location{
+			expected: &location{
 				path:            getCurrentAbsPath() + "/testdata/location1",
 				inputDir:        "input",
 				outputDir:       "output",
@@ -75,7 +75,7 @@ func TestLocation(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			if diff := cmp.Diff(got, tc.expected, cmp.AllowUnexported(ConfHandler{}, Location{}, Profile{})); diff != "" {
+			if diff := cmp.Diff(got, tc.expected, cmp.AllowUnexported(location{}, Profile{})); diff != "" {
 				t.Errorf("%s: (-got +want)\n%s", tc.name, diff)
 			}
 
@@ -103,6 +103,6 @@ func TestOverlayIsCopy(t *testing.T) {
 
 	// check that original has not changed
 	if a.appliedProfiles[0] != "a" {
-		t.Fatal("location.Overlay() does not return a copy of the Location struct")
+		t.Fatal("location.Overlay() does not return a copy of the location struct")
 	}
 }

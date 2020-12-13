@@ -1,4 +1,4 @@
-package config
+package config_old
 
 type videoExtensions struct {
 	items []videoExtension

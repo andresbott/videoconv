@@ -1,4 +1,4 @@
-package config2
+package videconv
 
 import (
 	"github.com/google/go-cmp/cmp"
@@ -34,7 +34,7 @@ func TestProfiles(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			if diff := cmp.Diff(tc.expected, vst, cmp.AllowUnexported(ConfHandler{}, Location{}, Profile{})); diff != "" {
+			if diff := cmp.Diff(tc.expected, vst, cmp.AllowUnexported(location{}, Profile{})); diff != "" {
 				t.Errorf("%s: (-got +want)\n%s", tc.name, diff)
 			}
 

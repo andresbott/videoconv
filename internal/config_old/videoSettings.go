@@ -1,4 +1,4 @@
-package config
+package config_old
 
 type videoSettings struct {
 	items []VideoSetting

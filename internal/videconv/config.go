@@ -1,20 +1,12 @@
-package config2
+package videconv
 
 import (
 	"errors"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"path/filepath"
 	"time"
 )
-
-type ConfHandler struct {
-	locations    []Location
-	profiles     map[string]Profile
-	logLevel     string
-	threads      int
-	pollInterval time.Duration
-	ffmpegBin    string
-}
 
 const (
 	defaultLogLevel     = "info"
@@ -23,10 +15,10 @@ const (
 	defaultFFmpeg       = "/usr/bin/ffmpeg"
 )
 
-// Load uses viper to load the main yaml configuration file
-func (cfg *ConfHandler) Load(file string) error {
+// prepare the app to run
+func (vc *App) loadConfig() error {
 
-	fileAbsPath, err := filepath.Abs(file)
+	fileAbsPath, err := filepath.Abs(vc.ConfigFile)
 	if err != nil {
 		return err
 	}
@@ -40,10 +32,16 @@ func (cfg *ConfHandler) Load(file string) error {
 	}
 
 	// LogLevel
-	cfg.logLevel = v.GetString("log_level")
-	if cfg.logLevel == "" {
-		cfg.logLevel = defaultLogLevel
+	vc.logLevel = v.GetString("log_level")
+	if vc.logLevel == "" {
+		vc.logLevel = defaultLogLevel
 	}
+	// log level
+	lv, err := log.ParseLevel(vc.logLevel)
+	if err != nil {
+		return err
+	}
+	log.SetLevel(lv)
 
 	// Poll duration
 	poll := v.GetString("poll_interval")
@@ -51,24 +49,27 @@ func (cfg *ConfHandler) Load(file string) error {
 		poll = defaultPollDuration
 	}
 
-	cfg.pollInterval, err = time.ParseDuration(poll)
+	vc.sleep, err = time.ParseDuration(poll)
 	if err != nil {
 		return err
 	}
 
 	// ffmpeg
-	cfg.ffmpegBin = v.GetString("ffmpeg")
-	if cfg.ffmpegBin == "" {
-		cfg.ffmpegBin = defaultFFmpeg
+	vc.ffmpegBin = v.GetString("ffmpeg")
+	if vc.ffmpegBin == "" {
+		vc.ffmpegBin = defaultFFmpeg
 	}
 
 	// Threads
-	cfg.threads = v.GetInt("threads")
-	if cfg.threads == 0 {
-		cfg.threads = defaultThreads
+	vc.threads = v.GetInt("threads")
+	if vc.threads == 0 {
+		vc.threads = defaultThreads
 	}
 
-	// Load video locations
+	// Video Extensions
+	vc.videoExtensions = v.GetStringSlice("video_extensions")
+
+	// load video locations
 	confLocations := v.Get("locations")
 	if confLocations == nil {
 		return errors.New("video locations not defined")
@@ -84,12 +85,11 @@ func (cfg *ConfHandler) Load(file string) error {
 		if err != nil {
 			return err
 		}
-		cfg.locations = append(cfg.locations, *item)
+		vc.locations = append(vc.locations, *item)
 	}
 
-	// load Default Video settings
-
-	cfg.profiles = make(map[string]Profile)
+	// load Default Video profiles
+	vc.profiles = make(map[string]Profile)
 
 	confVidSettings := v.Get("profiles")
 	if confVidSettings == nil {
@@ -106,9 +106,9 @@ func (cfg *ConfHandler) Load(file string) error {
 		if err != nil {
 			return err
 		}
-		cfg.profiles[item.name] = item
+		vc.profiles[item.name] = item
 	}
 
+	log.Info("loaded config file: " + fileAbsPath)
 	return nil
-
 }

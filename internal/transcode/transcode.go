@@ -2,7 +2,7 @@ package transcode
 
 import (
 	"github.com/AndresBott/f/fm"
-	"github.com/AndresBott/videoconv/internal/config"
+	"github.com/AndresBott/videoconv/internal/config_old"
 	log "github.com/sirupsen/logrus"
 	"os"
 	"os/exec"
@@ -13,16 +13,16 @@ import (
 )
 
 type Transcoder struct {
-	cfg           config.Conf
+	cfg           config_old.Conf
 	video         *fmfile.File
-	videoSettings []config.VideoSetting
+	videoSettings []config_old.VideoSetting
 	relativePath  string
 }
 
 // create a new Transcoder
 func NewTranscoder() *Transcoder {
 	t := Transcoder{
-		cfg: config.NewConfig(),
+		cfg: config_old.NewConfig(),
 	}
 	return &t
 }
