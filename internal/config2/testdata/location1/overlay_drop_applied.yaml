@@ -5,7 +5,7 @@ output: "output"
 tmp: "tmpdir"
 fail: "faildir"
 
-drop_applied: false
+drop_applied: true
 applied:
   - "720_h265_sample"
 

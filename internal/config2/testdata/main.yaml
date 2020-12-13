@@ -11,7 +11,7 @@ locations:
     fail: "faildir"
 
   - base_path: "./location1"
-    profiles:
+    applied:
       - "item2"
 
 profiles:

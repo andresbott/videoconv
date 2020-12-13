@@ -84,7 +84,7 @@ func (cfg *ConfHandler) Load(file string) error {
 		if err != nil {
 			return err
 		}
-		cfg.locations = append(cfg.locations, item)
+		cfg.locations = append(cfg.locations, *item)
 	}
 
 	// load Default Video settings
