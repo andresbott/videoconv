@@ -17,7 +17,7 @@ type App struct {
 	threads         int
 	sleep           time.Duration
 	locations       []location
-	OverlayFname string
+	OverlayFname    string
 	profiles        map[string]Profile
 }
 
@@ -75,18 +75,18 @@ func (vc *App) runLocation(l location) bool {
 	}
 
 	newLoc, err := l.loadOverlay(vc.OverlayFname)
-	if err != nil{
-		log.Errorf("error while loading overlay: %s",err)
+	if err != nil {
+		log.Errorf("error while loading overlay: %s", err)
 		return false
 	}
-	videos, err := vc.findVideoFiles(newLoc.path+"/"+newLoc.inputDir)
-	if err != nil{
-		log.Errorf("error while searching videos: %s",err)
+	videos, err := vc.findVideoFiles(newLoc.path + "/" + newLoc.inputDir)
+	if err != nil {
+		log.Errorf("error while searching videos: %s", err)
 		return false
 	}
-	log.Debugf("found %d, videos: \"%s\"",len(videos),strings.Join(videos,"\", \""))
+	log.Debugf("found %d, videos: \"%s\"", len(videos), strings.Join(videos, "\", \""))
 
-	Next, adapt and use transcoder to process the video list
+	//Next, adapt and use transcoder to process the video list
 	spew.Dump(videos)
 
 	return true
@@ -94,11 +94,11 @@ func (vc *App) runLocation(l location) bool {
 
 // findVideoFiles recurses the provided root dir and searches video files
 // returns a slice of relative paths
-func (vc *App)findVideoFiles(rootPath string) ([]string,  error ){
+func (vc *App) findVideoFiles(rootPath string) ([]string, error) {
 
 	var matches []string
 
-	err := filepath.Walk(rootPath, func( fPath string, fInfo os.FileInfo, err error) error {
+	err := filepath.Walk(rootPath, func(fPath string, fInfo os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -108,26 +108,26 @@ func (vc *App)findVideoFiles(rootPath string) ([]string,  error ){
 		ext := filepath.Ext(fPath)
 		ext = ext[1:]
 
-		if !vc.isVideo(ext){
+		if !vc.isVideo(ext) {
 			return nil
 		}
 
-		rel,err := filepath.Rel(rootPath,fPath)
-		if err != nil{
+		rel, err := filepath.Rel(rootPath, fPath)
+		if err != nil {
 			return err
 		}
-		matches = append(matches,rel)
+		matches = append(matches, rel)
 		return nil
 	})
 	if err != nil {
-		return  nil, err
+		return nil, err
 	}
-	return matches,nil
+	return matches, nil
 }
 
 // used to check if file is a video based on extansion
-func (vc *App)isVideo(val string)  bool {
-	c :=  strings.TrimSpace(val)
+func (vc *App) isVideo(val string) bool {
+	c := strings.TrimSpace(val)
 	c = strings.ToLower(val)
 
 	for _, item := range vc.videoExtensions {
