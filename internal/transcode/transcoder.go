@@ -1,107 +1,107 @@
 package transcoder
 
 import (
-	"github.com/AndresBott/videoconv/internal/videconv"
-	ffmpeg "github.com/floostack/transcoder/ffmpeg"
-	log "github.com/sirupsen/logrus"
+	"bytes"
+	"fmt"
+	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 type Cfg struct {
-	FfmpedBin string
-	VideoFile string
-	OutputDir string
-	TmpDir    string
-	FailDir   string
+	FfmpegBin  string
+	FfmpegOpts FfmpegOpts
+
+	InputFile  string
+	OutputFile string
 }
 
 type Transcoder struct {
-	finalOutputFile string
-	tmpOutputFile   string
-	inputFile       string
-	profile         videconv.Profile
-	opts            ffmpeg.Options
-	ffmpegCfg       ffmpeg.Config
+	ffmpeg     string
+	opts       FfmpegOpts
+	outputFile string
+	inputFile  string
 }
 
+// New() generates a single instance of a transcoding unit to be run once with a given configuration
 func New(cfg *Cfg) (*Transcoder, error) {
 
-	tc := Transcoder{}
-
-	tc.ffmpegCfg = ffmpeg.Config{
-		FfmpegBinPath:   cfg.FfmpedBin,
-		FfprobeBinPath:  "/usr/local/bin/ffprobe",
-		ProgressEnabled: false,
+	tc := Transcoder{
+		ffmpeg: cfg.FfmpegBin,
+		opts:   cfg.FfmpegOpts,
 	}
 
-	tc.inputFile = cfg.VideoFile
-
-	// ############# Deal with destination dirs
-	tmpOut, err := filepath.Abs(cfg.TmpDir + "/" + filepath.Base(cfg.VideoFile) + ".Ext")
-	if err != nil {
-		return nil, err
-	}
-	out, err := filepath.Abs(cfg.OutputDir + "/" + filepath.Base(cfg.VideoFile) + ".Ext")
+	inFile, err := filepath.Abs(cfg.InputFile)
 	if err != nil {
 		return nil, err
 	}
 
-	if cfg.TmpDir != "" {
-		tc.finalOutputFile = out
-		tc.tmpOutputFile = tmpOut
-	} else {
-		tc.finalOutputFile = out
-		tc.tmpOutputFile = out
+	tc.inputFile = inFile
+	outfName := strings.TrimSuffix(filepath.Base(cfg.OutputFile), filepath.Ext(filepath.Base(cfg.OutputFile)))
+
+	out, err := filepath.Abs(filepath.Dir(cfg.OutputFile) + "/" + outfName + "." + cfg.FfmpegOpts.Name + "." + cfg.FfmpegOpts.VideoExt())
+	if err != nil {
+		return nil, err
 	}
-
-	tc.opts = ffmpeg.Options{}
-
-	format := "mp4"
-	tc.opts.OutputFormat = &format
-
-	overwrite := true
-	tc.opts.Overwrite = &overwrite
-
-	//coder := ffmpeg.
-	//	New(ffmpegConf).
-	//	Input("/tmp/avi").
-	//	Output("/tmp/mp4").
-	//	WithOptions(opts)
+	tc.outputFile = out
 
 	return &tc, nil
 }
+func (tc *Transcoder) GetOutputFile() string {
+	return tc.outputFile
+}
 
-func (tc *Transcoder) getCmd() ([]string, error) {
+func (tc *Transcoder) GetCmd() ([]string, error) {
 
 	var r []string
-	r = append(r, tc.ffmpegCfg.FfmpegBinPath)
+	r = append(r, tc.ffmpeg)
 
-	r = append(r, "-i", tc.inputFile)
+	r = append(r, "-i", "\""+tc.inputFile+"\"")
 
-	r = append(r, tc.opts.GetStrArguments()...)
+	args, err := tc.opts.Args()
+	if err != nil {
+		return nil, err
+	}
+	r = append(r, args...)
 
-	r = append(r, tc.tmpOutputFile)
+	r = append(r, "\""+tc.outputFile+"\"")
 
 	return r, nil
 
 }
 
-func (tc *Transcoder) Run() error {
+func (tc *Transcoder) Run() (string, error) {
 
-	progress, err := ffmpeg.
-		New(&tc.ffmpegCfg).
-		Input("/tmp/avi").
-		Output("/tmp/mp4").
-		Start(tc.opts)
-
+	var cmd []string
+	cmd = append(cmd, tc.ffmpeg)
+	cmd = append(cmd, "-i", tc.inputFile)
+	args, err := tc.opts.Args()
 	if err != nil {
-		return err
+		return "", err
+	}
+	cmd = append(cmd, args...)
+	cmd = append(cmd, tc.outputFile)
+
+	command := exec.Command(cmd[0], cmd[1:]...)
+
+	// set var to get the output
+	var out bytes.Buffer
+	var errB bytes.Buffer
+
+	// set the output to our variable
+	command.Stdout = &out
+	command.Stderr = &errB
+	err = command.Run()
+	if err != nil {
+
+		lines := errB.String()
+		lines = strings.TrimSpace(lines)
+
+		lines2 := strings.Split(lines, "\n")
+		return strings.Join(cmd, " "), fmt.Errorf("%v : %s", err, lines2[len(lines2)-1:][0])
 	}
 
-	for msg := range progress {
-		log.Printf("%+v", msg)
-	}
-	return nil
+	return "", nil
 }
 
 //func (t *Transcoder) Run() {

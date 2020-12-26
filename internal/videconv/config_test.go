@@ -1,7 +1,9 @@
 package videconv
 
 import (
+	transcoder "github.com/AndresBott/videoconv/internal/transcode"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"path/filepath"
 	"testing"
 	"time"
@@ -49,16 +51,14 @@ func TestConfHandler_Load(t *testing.T) {
 				videoExtensions: []string{
 					"mp4", "wmv", "mkv",
 				},
-				profiles: map[string]Profile{
+				profiles: map[string]transcoder.FfmpegOpts{
 					"minimalist": {
-						name:      "minimalist",
-						extension: "mp4",
-						codec:     "h264",
+						Name:       "minimalist",
+						VideoCodec: "libx264",
 					},
 					"item2": {
-						name:      "item2",
-						extension: "mp4",
-						codec:     "h264",
+						Name:       "item2",
+						VideoCodec: "libx264",
 					},
 				},
 			},
@@ -77,7 +77,7 @@ func TestConfHandler_Load(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			if diff := cmp.Diff(app, tc.expected, cmp.AllowUnexported(App{}, location{}, Profile{})); diff != "" {
+			if diff := cmp.Diff(app, tc.expected, cmp.AllowUnexported(App{}, location{}), cmpopts.IgnoreUnexported(transcoder.FfmpegOpts{})); diff != "" {
 				t.Errorf("%s: (-got +want)\n%s", tc.name, diff)
 			}
 

@@ -22,8 +22,8 @@ locations:
 profiles:
   - name: "minimalist"
     extension: "mp4"
-    codec: "h264"
+    codec: "libx264"
 
   - name: "item2"
     extension: "mp4"
-    codec: "h264"
+    codec: "libx264"

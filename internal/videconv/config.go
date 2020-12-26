@@ -2,6 +2,7 @@ package videconv
 
 import (
 	"errors"
+	transcoder "github.com/AndresBott/videoconv/internal/transcode"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"path/filepath"
@@ -95,7 +96,7 @@ func (vc *App) loadConfig() error {
 	}
 
 	// load Default Video profiles
-	vc.profiles = make(map[string]Profile)
+	vc.profiles = make(map[string]transcoder.FfmpegOpts)
 
 	confVidSettings := v.Get("profiles")
 	if confVidSettings == nil {
@@ -108,11 +109,11 @@ func (vc *App) loadConfig() error {
 	}
 
 	for _, vSet := range confVidSettList {
-		item, err := newProfile(vSet)
+		item, err := transcoder.NewFromInterface(vSet)
 		if err != nil {
 			return err
 		}
-		vc.profiles[item.name] = item
+		vc.profiles[item.Name] = *item
 	}
 
 	log.Info("loaded config file: " + fileAbsPath)

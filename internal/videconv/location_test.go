@@ -75,7 +75,7 @@ func TestLocation(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			if diff := cmp.Diff(got, tc.expected, cmp.AllowUnexported(location{}, Profile{})); diff != "" {
+			if diff := cmp.Diff(got, tc.expected, cmp.AllowUnexported(location{})); diff != "" {
 				t.Errorf("%s: (-got +want)\n%s", tc.name, diff)
 			}
 

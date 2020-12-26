@@ -14,21 +14,25 @@ func getCurrentAbsPath() string {
 
 func TestConfHandler_Load(t *testing.T) {
 
+	smplOpts := FfmpegOpts{
+		VideoCodec: "libx264",
+	}
+
 	tcs := []struct {
 		name     string
 		bin      string
 		in       string
 		out      string
-		tmp      string
+		opts     FfmpegOpts
 		expected string
 	}{
 		{
 			name:     "happyPathMainConf",
 			bin:      "/bin/ffmpeg",
-			in:       "/abs/path/sample.mp4",
-			out:      "/abs/path/out/",
-			tmp:      "/abs/path/out",
-			expected: "bla",
+			in:       "/abs/path/smpl charsß.mp4",
+			opts:     smplOpts,
+			out:      "/abs/path/out/smpl charsß.mp4",
+			expected: `/bin/ffmpeg -i "/abs/path/smpl charsß.mp4" -c:v libx264 "/abs/path/out/smpl charsß.mp4"`,
 		},
 	}
 
@@ -36,17 +40,17 @@ func TestConfHandler_Load(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 
 			cfg := Cfg{
-				FfmpedBin: tc.bin,
-				VideoFile: tc.in,
-				OutputDir: tc.out,
-				TmpDir:    tc.tmp,
+				FfmpegBin:  tc.bin,
+				FfmpegOpts: tc.opts,
+				InputFile:  tc.in,
+				OutputFile: tc.out,
 			}
 			transcoder, err := New(&cfg)
 			if err != nil {
 				t.Fatal(err)
 			}
 
-			cmd, err := transcoder.getCmd()
+			cmd, err := transcoder.GetCmd()
 			if err != nil {
 				t.Fatal(err)
 			}

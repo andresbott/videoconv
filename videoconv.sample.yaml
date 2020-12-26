@@ -15,6 +15,7 @@ video_extensions:
   - mp4
   - wmv
   - mkv
+  - avi
 
 # list of locations where to perform video conversions
 # see Readme for details
@@ -23,14 +24,28 @@ locations:
   - base_path: "./sample-data"
     applied:
       - "item2"
+      - "allValues"
+      - "error"
 
 # list of video conversion profiles to be used in the locations
 # see Readme for details
 profiles:
   - name: "minimalist"
     extension: "mp4"
-    codec: "h264"
+    codec: "libx264"
 
   - name: "item2"
     extension: "mp4"
-    codec: "h264"
+    codec: "libx264"
+    duration: "5s"
+    start: "10s"
+
+  - name: allValues
+    threads: "2"
+    codec: "libx264"
+    quality_crf: "23"
+    quality_preset: "medium"
+    quality_tune: "film"
+    scale: 480
+    duration: "2s"
+    start: "10s"
