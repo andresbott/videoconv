@@ -18,10 +18,10 @@ type location struct {
 }
 
 const (
-	defaultInputDir  = "in"
-	defaultOutputDir = "out"
-	defaultTmpDir    = "tmp"
-	defaultFailDir   = "fail"
+	DefaultInputDir  = "in"
+	DefaultOutputDir = "out"
+	DefaultTmpDir    = "tmp"
+	DefaultFailDir   = "fail"
 )
 
 // loadLocation uses a interface, loaded by viper, that contains the data needed for a video conversion location
@@ -29,10 +29,10 @@ func newLocation(in interface{}) (*location, error) {
 
 	loc := location{
 		path:      "",
-		inputDir:  defaultInputDir,
-		outputDir: defaultOutputDir,
-		tmpDir:    defaultTmpDir,
-		failDir:   defaultFailDir,
+		inputDir:  DefaultInputDir,
+		outputDir: DefaultOutputDir,
+		tmpDir:    DefaultTmpDir,
+		failDir:   DefaultFailDir,
 	}
 
 	itemsMap := in.(map[interface{}]interface{})

@@ -19,7 +19,6 @@ func Run() {
 		},
 	}
 
-	// todo: add global flag debug
 	cmd.AddCommand(versionCmd())
 	cmd.AddCommand(runCmd())
 	cmd.AddCommand(configCmd())

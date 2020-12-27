@@ -13,8 +13,8 @@ import (
 const (
 	defaultLogLevel     = "info"
 	defaultPollDuration = "5m"
-	defaultThreads      = 1
-	defaultFFmpeg       = "/usr/bin/ffmpeg"
+	DefaultThreads      = 1
+	DefaultFFmpeg       = "/usr/bin/ffmpeg"
 	defaultOverlayFname = "videoconv.yaml"
 )
 
@@ -64,13 +64,13 @@ func (vc *App) loadConfig() error {
 	// ffmpeg
 	vc.ffmpegBin = v.GetString("ffmpeg")
 	if vc.ffmpegBin == "" {
-		vc.ffmpegBin = defaultFFmpeg
+		vc.ffmpegBin = DefaultFFmpeg
 	}
 
 	// Threads
 	vc.threads = v.GetInt("threads")
 	if vc.threads == 0 {
-		vc.threads = defaultThreads
+		vc.threads = DefaultThreads
 	}
 
 	// Video Extensions

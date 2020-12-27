@@ -46,6 +46,7 @@ func (vc *App) loop() {
 			log.Info("finished, exiting...")
 			break
 		}
+		log.Infof("finished, sleeping for %s", vc.sleep)
 		time.Sleep(vc.sleep)
 	}
 }
@@ -143,6 +144,15 @@ func (vc *App) transcodeVideo(video string, location *location) {
 			if err != nil {
 				r := fmt.Errorf("error with trancoder \"%s\" args: %s", profName, err.Error())
 				log.Error(r)
+			}
+
+			// delete a potential tmp output file before starting a new conversion
+			if _, err := os.Stat(tr.GetOutputFile()); err == nil {
+				log.Warn("deleting OLD tmp file: " + tr.GetOutputFile())
+				e := os.Remove(tr.GetOutputFile())
+				if e != nil {
+					log.Fatalf("unable to delete temp file %s, error: %v ", tr.GetOutputFile(), e)
+				}
 			}
 
 			commads, err := tr.Run()
