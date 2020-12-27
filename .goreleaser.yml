@@ -6,6 +6,11 @@ before:
     - go mod download
     # you may remove this if you don't need go generate
     - go generate ./...
+
+env_files:
+  # use only one or release will fail!
+  github_token: ~/.goreleaser/gh_token
+
 builds:
   - env:
       - CGO_ENABLED=0
