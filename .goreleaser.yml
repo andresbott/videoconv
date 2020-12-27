@@ -20,7 +20,9 @@ builds:
 
 # .goreleaser.yml
 nfpms:
-  - id: default
+#  see https://goreleaser.com/customization/nfpm/
+  -
+    id: default
     homepage: https://github.com/AndresBott/videoconv
     maintainer: AndresBott <contact@andresbott.com>
     description: Batch video conversion based on directory observation.
@@ -30,39 +32,8 @@ nfpms:
       - rpm
     dependencies:
       - ffmpeg
-    recommends: []
-    suggests: []
-    conflicts: []
-    replaces: []
-
     # Override default /usr/local/bin destination for binaries
     bindir: /usr/bin
-
-    # Makes a meta package - an empty package that contains only supporting files and dependencies.
-    # When set to `true`, the `builds` option is ignored.
-    # Defaults to false.
-    # meta: true
-
-    # Empty folders that should be created and managed by the packager
-    # implementation.
-    # Default is empty.
-    # empty_folders:
-    #  - /var/log/foobar
-
-    # contents: see https://goreleaser.com/customization/nfpm/ for details
-
-
-    # Scripts to execute during the installation of the package.
-    # Keys are the possible targets during the installation process
-    # Values are the paths to the scripts which will be executed
-#    scripts:
-#      preinstall: "scripts/preinstall.sh"
-#      postinstall: "scripts/postinstall.sh"
-#      preremove: "scripts/preremove.sh"
-#      postremove: "scripts/postremove.sh"
-    rpm:
-      group: Video
-
 
 archives:
   - replacements:
