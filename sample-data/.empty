@@ -1,0 +1,5 @@
+# ignored dirs:
+in/
+out/
+tmp/
+fail/

@@ -1,0 +1,19 @@
+---
+
+input: "input"
+output: "output"
+tmp: "tmpdir"
+fail: "faildir"
+
+drop_applied: true
+applied:
+  - "720_h265_sample"
+
+
+profiles:
+  - name: "720_h265_sample"
+    scale: "720" # scale down to 720
+    duration: "30s" # duration string stop transcoding after that time
+    extension: "mp4"
+    codec: "h265"
+
