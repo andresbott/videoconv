@@ -46,7 +46,7 @@ func TestFfmpegOpst_Args(t *testing.T) {
 		},
 		{
 			name: "VideoScale", in: FfmpegOpts{VideoScale: 720},
-			expected: []string{"-vf", `'scale=-2:min(720\,ih-mod(ih\,2))'`},
+			expected: []string{"-vf", `scale=-2:min(720\,ih-mod(ih\,2))`},
 		},
 		{
 			name: "Duration", in: FfmpegOpts{VideoDuration: 2 * time.Minute, VideoStart: 10 * time.Second},

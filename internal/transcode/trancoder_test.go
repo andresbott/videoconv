@@ -15,6 +15,7 @@ func getCurrentAbsPath() string {
 func TestConfHandler_Load(t *testing.T) {
 
 	smplOpts := FfmpegOpts{
+		Name:       "test",
 		VideoCodec: "libx264",
 	}
 
@@ -32,7 +33,7 @@ func TestConfHandler_Load(t *testing.T) {
 			in:       "/abs/path/smpl charsß.mp4",
 			opts:     smplOpts,
 			out:      "/abs/path/out/smpl charsß.mp4",
-			expected: `/bin/ffmpeg -i "/abs/path/smpl charsß.mp4" -c:v libx264 "/abs/path/out/smpl charsß.mp4"`,
+			expected: `/bin/ffmpeg -i "/abs/path/smpl charsß.mp4" -c:v libx264 "/abs/path/out/smpl charsß.test.mp4"`,
 		},
 	}
 

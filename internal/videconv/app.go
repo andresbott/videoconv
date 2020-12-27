@@ -40,9 +40,7 @@ func (vc *App) Start() error {
 func (vc *App) loop() {
 	for true {
 		for _, l := range vc.locations {
-			if vc.runLocation(l) {
-				continue
-			}
+			vc.runLocation(l)
 		}
 		if !vc.DaemonMode {
 			log.Info("finished, exiting...")
@@ -55,13 +53,13 @@ func (vc *App) loop() {
 // execute one video on one location and return true after a video conversion is finished
 // in case there are no videos false is returned, errors are swallowed and only logged
 // videos that contain errors are moved to fail location and true is returned anyway.
-func (vc *App) runLocation(l location) bool {
+func (vc *App) runLocation(l location) {
 	log.Debug("checking location:" + l.path)
 
 	dir, _ := filepath.Abs(l.path)
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		log.Warnf("directory %s does not exist or is not accessible, skipping location", dir)
-		return false
+		return
 	}
 
 	dirs := []string{
@@ -78,7 +76,7 @@ func (vc *App) runLocation(l location) bool {
 			log.Warnf("directory %s does not exist or is not accessible, trying to create", dir)
 			err := os.Mkdir(dir, 0755)
 			if err != nil {
-				return false
+				log.Fatalf("unable to create dir %s, %v", dir, err)
 			}
 		}
 	}
@@ -87,30 +85,25 @@ func (vc *App) runLocation(l location) bool {
 	newLoc, err := l.loadOverlay(vc.OverlayFname)
 	if err != nil {
 		log.Errorf("error while loading overlay: %s", err)
-		return false
+		return
 	}
 
-	// search for videos in the location
-	video, err := vc.findVideoFile(newLoc.path + "/" + newLoc.inputDir)
-	if err != nil {
-		log.Errorf("error while searching videos: %s", err)
-		return false
+	for {
+		// search for videos in the location
+		video, err := vc.findVideoFile(newLoc.path + "/" + newLoc.inputDir)
+		if err != nil {
+			log.Errorf("error while searching videos: %s", err)
+			return
+		}
+		if video == "" {
+			return
+		}
+		vc.transcodeVideo(video, newLoc)
 	}
-	if video == "" {
-		return false
-	}
-	log.Debugf("found video: \"%s\"", video)
-
-	err = vc.transcodeVideo(video, newLoc)
-	if err != nil {
-		return false
-	}
-	return true
-
 }
 
 // transcodeVideo takes one video and will transcode it to all the configured profiles
-func (vc *App) transcodeVideo(video string, location *location) error {
+func (vc *App) transcodeVideo(video string, location *location) {
 	start := time.Now()
 
 	log.Infof("transcoding video: \"%s\"", video)
@@ -119,19 +112,16 @@ func (vc *App) transcodeVideo(video string, location *location) error {
 	if err != nil {
 		r := fmt.Errorf("error getting the absolute path for input file: %s", err.Error())
 		log.Error(r)
-		return r
 	}
 	absOutDir, err := filepath.Abs(location.path + "/" + location.outputDir)
 	if err != nil {
 		r := fmt.Errorf("error getting the absolute path for input file: %s", err.Error())
 		log.Error(r)
-		return r
 	}
 	absTmpDir, err := filepath.Abs(location.path + "/" + location.tmpDir)
 	if err != nil {
 		r := fmt.Errorf("error getting the absolute path for input file: %s", err.Error())
 		log.Error(r)
-		return r
 	}
 
 	var toBeMoved []string
@@ -153,7 +143,6 @@ func (vc *App) transcodeVideo(video string, location *location) error {
 			if err != nil {
 				r := fmt.Errorf("error with trancoder \"%s\" args: %s", profName, err.Error())
 				log.Error(r)
-				return r
 			}
 
 			commads, err := tr.Run()
@@ -165,7 +154,6 @@ func (vc *App) transcodeVideo(video string, location *location) error {
 				if e != nil {
 					log.Fatalf("unable to delete temp file %s, error: %v ", tr.GetOutputFile(), e)
 				}
-				return r
 			}
 			toBeMoved = append(toBeMoved, tr.GetOutputFile())
 			log.Infof("profile \"%s\" took %s", profName, time.Since(pStart))
@@ -199,8 +187,6 @@ func (vc *App) transcodeVideo(video string, location *location) error {
 	if err != nil {
 		log.Fatalf("unable to move file %s, error: %v ", filepath.Join(absInDir, video), err)
 	}
-
-	return nil
 }
 
 // findVideoFiles recurses the provided root dir and searches video files
