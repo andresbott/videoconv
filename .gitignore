@@ -12,5 +12,5 @@ sample-data/fail/*
 .idea/
 *.iml
 
-
+dist
 
