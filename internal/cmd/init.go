@@ -32,10 +32,14 @@ func configCmd() *cobra.Command {
 			}
 
 			for _, d := range dirs {
-				dir, _ := filepath.Abs(filepath.Join("./"+locationName, d))
+
+				dir, err := filepath.Abs(filepath.Join("./"+locationName, d))
+				if err != nil {
+					log.Fatalf("unable to create abspath: %s", err)
+				}
 
 				log.Infof("creating dir: %s", dir)
-				err := os.MkdirAll(dir, 0755)
+				err = os.MkdirAll(dir, 0755)
 				if err != nil {
 					log.Fatalf("unable to create dir %s, %v", dir, err)
 				}

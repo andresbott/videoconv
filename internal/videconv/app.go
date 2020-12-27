@@ -144,6 +144,7 @@ func (vc *App) transcodeVideo(video string, location *location) {
 			if err != nil {
 				r := fmt.Errorf("error with trancoder \"%s\" args: %s", profName, err.Error())
 				log.Error(r)
+				return
 			}
 
 			// delete a potential tmp output file before starting a new conversion
@@ -157,8 +158,11 @@ func (vc *App) transcodeVideo(video string, location *location) {
 
 			commads, err := tr.Run()
 			if err != nil {
-				r := fmt.Errorf("error while transcoding video with profile \"%s\" args: %s, command: %s", profName, err.Error(), commads)
-				log.Error(r)
+				log.Errorf("error while transcoding video with profile \"%s\" args: %s, command: %s", profName, err.Error(), commads)
+
+				// todo move file to failed
+				log.Warn("TODO: move file to fail location")
+
 				log.Warn("deleting temp file: " + tr.GetOutputFile())
 				e := os.Remove(tr.GetOutputFile())
 				if e != nil {
@@ -174,7 +178,6 @@ func (vc *App) transcodeVideo(video string, location *location) {
 	}
 
 	log.Infof("video processing took %s", time.Since(start))
-
 	log.Infof("movig files to final destination: %s", absOutDir)
 
 	destPath := filepath.Join(absOutDir, filepath.Dir(video))
@@ -185,6 +188,7 @@ func (vc *App) transcodeVideo(video string, location *location) {
 		}
 	}
 
+	// move the converted files
 	for _, f := range toBeMoved {
 		err := os.Rename(f, filepath.Join(destPath, filepath.Base(f)))
 		if err != nil {

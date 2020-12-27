@@ -9,16 +9,14 @@ before:
 builds:
   - env:
       - CGO_ENABLED=0
+    main: ./main.go
     goos:
       - linux
-
     # Custom ldflags templates.
     # Default is `-s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}} -X main.builtBy=goreleaser`.
     ldflags:
-      - -s -w -X internal/cmd.Version=bla
+      - -s -w -X github.com/AndresBott/videoconv/internal/cmd.Version={{.Version}}
 
-
-# .goreleaser.yml
 nfpms:
 #  see https://goreleaser.com/customization/nfpm/
   -
@@ -26,7 +24,7 @@ nfpms:
     homepage: https://github.com/AndresBott/videoconv
     maintainer: AndresBott <contact@andresbott.com>
     description: Batch video conversion based on directory observation.
-    license: GNU Lesser General Public License v2.1
+    license: GNU LESSER GENERAL PUBLIC LICENSE v3.0
     formats:
       - deb
       - rpm
