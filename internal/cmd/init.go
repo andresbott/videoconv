@@ -85,6 +85,9 @@ profiles:
     scale: 720
     duration: "30s"
     start: "10s"
+    cuda_decoding: "false" # set to "true" to use -hwaccel cuda
+    cuda_hw_output: "false" # set to true to use -hwaccel_output_format cuda for late nvec encoding
+    extra: "" # add extra ffmpeg parameters not listed above
 `
 			d1 := []byte(configContent)
 

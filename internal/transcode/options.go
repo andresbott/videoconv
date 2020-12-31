@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -24,10 +25,16 @@ var allowedTune = []string{
 	"film",
 	"grain",
 	"animation",
+	"hq",       // h264_nvenc
+	"ll",       // h264_nvenc
+	"ull",      // h264_nvenc
+	"lossless", // h264_nvenc
 }
 
 var allowedVideoCodec = []string{
 	"libx264",
+	"h264_nvenc",
+	"hevc_nvenc",
 }
 var defaultExtension = "mp4"
 
@@ -40,6 +47,10 @@ type FfmpegOpts struct {
 	VideoScale    int
 	VideoDuration time.Duration `attr:"-t"`
 	VideoStart    time.Duration `attr:"-ss"`
+	CudaDecoding  bool
+	CudaHwOutput  bool
+
+	Extra string `attr:" "`
 
 	Name           string
 	videoExtension string
@@ -51,7 +62,7 @@ const (
 	NameNotProvidedError = "name not provided for ffmpeg options"
 	NotAllowedCodec      = "codec is not in the allowed list"
 	NotAllowedPreset     = "video preset is not in the allowed list"
-	NotAllowedTune       = "vide tune is not in the allowed list"
+	NotAllowedTune       = "video tune is not in the allowed list"
 )
 
 // NewFromInterface takes an interface, generated from a yaml loader, to generate an ffmpegOpts struct file
@@ -144,7 +155,26 @@ func NewFromInterface(in interface{}) (*FfmpegOpts, error) {
 
 			continue
 
+		case "cuda_decoding":
+			val := fmt.Sprintf("%s", v)
+			if val == "true" {
+				opts.CudaDecoding = true
+			}
+			continue
+
+		case "cuda_hw_output":
+			val := fmt.Sprintf("%s", v)
+			if val == "true" {
+				opts.CudaHwOutput = true
+			}
+			continue
+
+		case "extra":
+			val := fmt.Sprintf("%s", v)
+			opts.Extra = val
+			continue
 		}
+
 	}
 
 	if opts.Name == "" {
@@ -162,7 +192,7 @@ func (opts *FfmpegOpts) VideoExt() string {
 	return defaultExtension
 }
 
-func (opts *FfmpegOpts) Args() ([]string, error) {
+func (opts *FfmpegOpts) Args() ([]string, []string, error) {
 
 	// verify crf value
 	if opts.QualityCRF != nil && *opts.QualityCRF > 51 {
@@ -175,12 +205,12 @@ func (opts *FfmpegOpts) Args() ([]string, error) {
 
 	// verify Quality presets
 	if opts.QualityPreset != "" && !inSlice(allowedPresets, opts.QualityPreset) {
-		return nil, errors.New("provided preset is not allowed")
+		return nil, nil, errors.New("provided preset is not allowed")
 	}
 
 	// verify Quality tune
 	if opts.QualityTune != "" && !inSlice(allowedTune, opts.QualityTune) {
-		return nil, errors.New("provided quality tune is not allowed")
+		return nil, nil, errors.New("provided quality tune is not allowed")
 	}
 
 	t := reflect.ValueOf(opts)
@@ -220,7 +250,13 @@ func (opts *FfmpegOpts) Args() ([]string, error) {
 			if !v.Field(i).IsZero() {
 
 				if v, ok := value.(string); ok {
-					values = append(values, attr, v)
+					if strings.TrimSpace(attr) != "" {
+						values = append(values, attr)
+					}
+					splitValues := strings.Split(v, " ")
+					for _, spv := range splitValues {
+						values = append(values, strings.TrimSpace(spv))
+					}
 				}
 
 				if _, ok := value.(bool); ok {
@@ -238,7 +274,27 @@ func (opts *FfmpegOpts) Args() ([]string, error) {
 		}
 	}
 
-	return values, nil
+	// handle cuda pre args
+	var preValues []string
+	if opts.CudaDecoding == true {
+		preValues = append(preValues, "-hwaccel", "cuda")
+	}
+	if opts.CudaHwOutput == true {
+		preValues = append(preValues, "-hwaccel_output_format", "cuda")
+	}
+
+	return dropEmpty(preValues), dropEmpty(values), nil
+}
+
+// remove empty items in slice
+func dropEmpty(in []string) []string {
+	var out []string
+	for _, v := range in {
+		if strings.TrimSpace(v) != "" {
+			out = append(out, v)
+		}
+	}
+	return out
 }
 
 func fmtDuration(d time.Duration) string {

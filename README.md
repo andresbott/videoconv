@@ -23,6 +23,8 @@ videoconv can run as cli or daemon regularly looking for new files that have bee
     
 
 # Improvement ideas
+* add profile flag -hwaccel for hw decoding
+
 * us a task runner to allow multiple executions to run in parallel, e.g when using GPU encoding, and you have more than one gpu
 
 

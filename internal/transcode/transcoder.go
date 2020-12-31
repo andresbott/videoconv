@@ -56,12 +56,14 @@ func (tc *Transcoder) GetCmd() ([]string, error) {
 	var r []string
 	r = append(r, tc.ffmpeg)
 
-	r = append(r, "-i", "\""+tc.inputFile+"\"")
-
-	args, err := tc.opts.Args()
+	preArgs, args, err := tc.opts.Args()
 	if err != nil {
 		return nil, err
 	}
+	r = append(r, preArgs...)
+
+	r = append(r, "-i", "\""+tc.inputFile+"\"")
+
 	r = append(r, args...)
 
 	r = append(r, "\""+tc.outputFile+"\"")
@@ -74,11 +76,12 @@ func (tc *Transcoder) Run() (string, error) {
 
 	var cmd []string
 	cmd = append(cmd, tc.ffmpeg)
-	cmd = append(cmd, "-i", tc.inputFile)
-	args, err := tc.opts.Args()
+	preArgs, args, err := tc.opts.Args()
 	if err != nil {
 		return "", err
 	}
+	cmd = append(cmd, preArgs...)
+	cmd = append(cmd, "-i", tc.inputFile)
 	cmd = append(cmd, args...)
 	cmd = append(cmd, tc.outputFile)
 

@@ -15,49 +15,58 @@ func getIntPointer(i int) *int {
 func TestFfmpegOpst_Args(t *testing.T) {
 
 	tcs := []struct {
-		name        string
-		in          FfmpegOpts
-		expected    []string
-		expectedErr string
+		name              string
+		in                FfmpegOpts
+		expectedInputArgs []string
+		expectedArgs      []string
+		expectedErr       string
 	}{
 		{
 			name: "Threads", in: FfmpegOpts{Threads: 2},
-			expected: []string{"-threads", "2"},
+			expectedArgs: []string{"-threads", "2"},
 		},
 		{
 			name: "VideoCodec", in: FfmpegOpts{VideoCodec: "libx264"},
-			expected: []string{"-c:v", "libx264"},
+			expectedArgs: []string{"-c:v", "libx264"},
 		},
 		{
 			name: "VideoQuality", in: FfmpegOpts{QualityCRF: getIntPointer(23)},
-			expected: []string{"-crf", "23"},
+			expectedArgs: []string{"-crf", "23"},
 		},
 		{
 			name: "VideoQuality out of bounds", in: FfmpegOpts{QualityCRF: getIntPointer(100)},
-			expected: []string{"-crf", "51"},
+			expectedArgs: []string{"-crf", "51"},
 		},
 		{
 			name: "VideoPreset", in: FfmpegOpts{QualityPreset: "medium"},
-			expected: []string{"-preset", "medium"},
+			expectedArgs: []string{"-preset", "medium"},
 		},
 		{
 			name: "QualityTune", in: FfmpegOpts{QualityTune: "animation"},
-			expected: []string{"-tune", "animation"},
+			expectedArgs: []string{"-tune", "animation"},
 		},
 		{
 			name: "VideoScale", in: FfmpegOpts{VideoScale: 720},
-			expected: []string{"-vf", `scale=-2:min(720\,ih-mod(ih\,2))`},
+			expectedArgs: []string{"-vf", `scale=-2:min(720\,ih-mod(ih\,2))`},
 		},
 		{
 			name: "Duration", in: FfmpegOpts{VideoDuration: 2 * time.Minute, VideoStart: 10 * time.Second},
-			expected: []string{"-t", "00:02:00", "-ss", "00:00:10"},
+			expectedArgs: []string{"-t", "00:02:00", "-ss", "00:00:10"},
+		},
+		{
+			name: "Cuda", in: FfmpegOpts{CudaDecoding: true, CudaHwOutput: true},
+			expectedInputArgs: []string{"-hwaccel", "cuda", "-hwaccel_output_format", "cuda"},
+		},
+		{
+			name: "Extra", in: FfmpegOpts{Extra: "-r 30"},
+			expectedArgs: []string{"-r", "30"},
 		},
 	}
 
 	for _, tc := range tcs {
 		t.Run(tc.name, func(t *testing.T) {
 
-			got, err := tc.in.Args()
+			got1, got2, err := tc.in.Args()
 
 			if tc.expectedErr != "" {
 				if err == nil {
@@ -69,9 +78,14 @@ func TestFfmpegOpst_Args(t *testing.T) {
 			} else if err != nil && tc.expectedErr == "" {
 				t.Fatalf("got unexpected error: %s", err.Error())
 			}
-
-			if diff := cmp.Diff(got, tc.expected); diff != "" {
-				t.Errorf("%s: (-got +want)\n%s", tc.name, diff)
+			if tc.expectedInputArgs != nil {
+				if diff := cmp.Diff(got1, tc.expectedInputArgs); diff != "" {
+					t.Errorf("%s: (-got +want)\n%s", tc.name, diff)
+				}
+			} else {
+				if diff := cmp.Diff(got2, tc.expectedArgs); diff != "" {
+					t.Errorf("%s: (-got +want)\n%s", tc.name, diff)
+				}
 			}
 
 		})
@@ -178,6 +192,44 @@ func TestNewFromInterface(t *testing.T) {
 				Name:          "bla",
 				VideoDuration: 2 * time.Minute,
 				VideoStart:    10 * time.Second,
+			},
+		},
+
+		{
+			name: "extra field",
+			in: map[interface{}]interface{}{
+				"name":  "bla",
+				"extra": "-r 30",
+			},
+			expected: FfmpegOpts{
+				Name:  "bla",
+				Extra: "-r 30",
+			},
+		},
+		{
+			name: "cuda decoding",
+			in: map[interface{}]interface{}{
+				"name":           "cuda decoding",
+				"cuda_decoding":  "true",
+				"cuda_hw_output": "true",
+			},
+			expected: FfmpegOpts{
+				Name:         "cuda decoding",
+				CudaDecoding: true,
+				CudaHwOutput: true,
+			},
+		},
+		{
+			name: "cuda decoding disabled",
+			in: map[interface{}]interface{}{
+				"name":           "cuda decoding",
+				"cuda_decoding":  "false",
+				"cuda_hw_output": "",
+			},
+			expected: FfmpegOpts{
+				Name:         "cuda decoding",
+				CudaDecoding: false,
+				CudaHwOutput: false,
 			},
 		},
 	}

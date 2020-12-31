@@ -156,6 +156,9 @@ func (vc *App) transcodeVideo(video string, location *location) {
 				}
 			}
 
+			logCmd, _ := tr.GetCmd()
+			log.Infof("command: %s", strings.Join(logCmd, " "))
+
 			commads, err := tr.Run()
 			if err != nil {
 				log.Errorf("error while transcoding video with profile \"%s\" args: %s, command: %s", profName, err.Error(), commads)
