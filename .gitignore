@@ -13,4 +13,5 @@ sample-data/fail/*
 *.iml
 
 dist
+target
 

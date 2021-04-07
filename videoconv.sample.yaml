@@ -1,12 +1,15 @@
 ---
 # sample configuration
-log_level: "info"
+log_level: "debug"
 
 # poll interval looking for new videos
 poll_interval: "5s"
 
 # Location for ffmpeg use /usr/bin/ffmpeg as default
 ffmpeg: ""
+# Location for ffprobe use /usr/bin/ffprobe as default
+ffprobe: ""
+
 # amount of threads configured for ffmpeg
 threads: 1
 
@@ -30,11 +33,8 @@ locations:
 profiles:
 
   - name: allValues
-    threads: "2"
-    codec: "libx264"
-    quality_crf: "23"
-    quality_preset: "medium"
-    quality_tune: "film"
-    scale: 480
-    duration: "2s"
-    start: "10s"
+    template: |-
+      -i {{ .Input }}
+      {{ if ( gt .Width 1000) }} -vf scale=-2:320  {{ end }}
+      -c:v libx264 -crf 40 -preset fast
+      {{ .Output }}

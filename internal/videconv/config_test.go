@@ -1,7 +1,6 @@
 package videconv
 
 import (
-	transcoder "github.com/AndresBott/videoconv/internal/transcode"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"path/filepath"
@@ -22,10 +21,10 @@ func TestConfHandler_Load(t *testing.T) {
 		expected App
 	}{
 		{
-			name: "happyPathMainConf",
-			file: "testdata/main.yaml",
+			name: "happyPath",
+			file: "testdata/happyPath.yaml",
 			expected: App{
-				ConfigFile:   "testdata/main.yaml",
+				ConfigFile:   "testdata/happyPath.yaml",
 				OverlayFname: "videoconv.yaml",
 				locations: []location{
 					{
@@ -44,21 +43,23 @@ func TestConfHandler_Load(t *testing.T) {
 						appliedProfiles: []string{"item2"},
 					},
 				},
-				logLevel:  "error",
-				threads:   2,
-				sleep:     10 * time.Second,
-				ffmpegBin: "/usr/bin/ffmpeg",
+				logLevel:   "error",
+				threads:    2,
+				sleep:      10 * time.Second,
+				ffmpegBin:  "/usr/bin/ffmpeg",
+				ffProbeBin: "/usr/bin/ffprobe",
 				videoExtensions: []string{
 					"mp4", "wmv", "mkv",
 				},
-				profiles: map[string]transcoder.FfmpegOpts{
-					"minimalist": {
-						Name:       "minimalist",
-						VideoCodec: "libx264",
-					},
+				profiles: map[string]profile{
 					"item2": {
-						Name:       "item2",
-						VideoCodec: "libx264",
+						template: "item2 template",
+						name:     "item2",
+					},
+					"minimalist": {
+						template:  "minimalist template",
+						name:      "minimalist",
+						extension: "mp4",
 					},
 				},
 			},
@@ -77,11 +78,9 @@ func TestConfHandler_Load(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			if diff := cmp.Diff(app, tc.expected, cmp.AllowUnexported(App{}, location{}), cmpopts.IgnoreUnexported(transcoder.FfmpegOpts{})); diff != "" {
+			if diff := cmp.Diff(app, tc.expected, cmp.AllowUnexported(App{}, location{}), cmpopts.IgnoreUnexported(profile{})); diff != "" {
 				t.Errorf("%s: (-got +want)\n%s", tc.name, diff)
 			}
-
 		})
 	}
-
 }

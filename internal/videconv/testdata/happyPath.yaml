@@ -2,11 +2,20 @@ log_level: "error"
 poll_interval: "10s"
 threads: 2
 ffmpeg: ""
+ffprobe: ""
 
 video_extensions:
   - mp4
   - wmv
   - mkv
+
+profiles:
+  - name: "minimalist"
+    extension: "mp4"
+    template: minimalist template
+
+  - name: "item2"
+    template: item2 template
 
 locations:
   - base_path: "./"
@@ -19,11 +28,3 @@ locations:
     applied:
       - "item2"
 
-profiles:
-  - name: "minimalist"
-    extension: "mp4"
-    codec: "libx264"
-
-  - name: "item2"
-    extension: "mp4"
-    codec: "libx264"

@@ -2,7 +2,8 @@ package videconv
 
 import (
 	"fmt"
-	transcoder "github.com/AndresBott/videoconv/internal/transcode"
+	"github.com/AndresBott/videoconv/internal/transcoder"
+	"github.com/davecgh/go-spew/spew"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"os"
@@ -16,12 +17,13 @@ type App struct {
 	DaemonMode      bool
 	logLevel        string
 	ffmpegBin       string
+	ffProbeBin      string
 	videoExtensions []string
 	threads         int
 	sleep           time.Duration
 	locations       []location
 	OverlayFname    string
-	profiles        map[string]transcoder.FfmpegOpts
+	profiles        map[string]profile
 }
 
 // start the video conversion app
@@ -36,7 +38,7 @@ func (vc *App) Start() error {
 	return nil
 }
 
-// prepare the app to run
+// main execution loop, will exit if not run in daemon mode
 func (vc *App) loop() {
 	for true {
 		for _, l := range vc.locations {
@@ -83,6 +85,7 @@ func (vc *App) runLocation(l location) {
 	}
 
 	// load location specific configuration
+	// todo remove overlay configuration: not needed
 	newLoc, err := l.loadOverlay(vc.OverlayFname)
 	if err != nil {
 		log.Errorf("error while loading overlay: %s", err)
@@ -133,16 +136,23 @@ func (vc *App) transcodeVideo(video string, location *location) {
 			log.Infof("running profile: \"%s\"", profName)
 			pStart := time.Now()
 
+			spew.Dump(prf)
+			// my_original_video.<profileName>.<profileExtension>
+			outputFileName := filepath.Base(video) + "." + prf.name + "." + prf.extension
+
 			cfg := transcoder.Cfg{
 				FfmpegBin:  vc.ffmpegBin,
-				FfmpegOpts: prf,
+				FfProbeBin: vc.ffProbeBin,
+				Template:   prf.template,
 				InputFile:  filepath.Join(absInDir, video),
-				OutputFile: filepath.Join(absTmpDir, filepath.Base(video)),
+				OutputFile: filepath.Join(absTmpDir, outputFileName),
 			}
+
+			spew.Dump(cfg)
 
 			tr, err := transcoder.New(&cfg)
 			if err != nil {
-				r := fmt.Errorf("error with trancoder \"%s\" args: %s", profName, err.Error())
+				r := fmt.Errorf("error with transcoder \"%s\" args: %s", profName, err.Error())
 				log.Error(r)
 				return
 			}
@@ -157,7 +167,7 @@ func (vc *App) transcodeVideo(video string, location *location) {
 			}
 
 			logCmd, _ := tr.GetCmd()
-			log.Infof("command: %s", strings.Join(logCmd, " "))
+			log.Debugf("command: %s", strings.Join(logCmd, " "))
 
 			commads, err := tr.Run()
 			if err != nil {

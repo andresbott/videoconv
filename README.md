@@ -27,6 +27,9 @@ videoconv can run as cli or daemon regularly looking for new files that have bee
 
 * us a task runner to allow multiple executions to run in parallel, e.g when using GPU encoding, and you have more than one gpu
 
+* add parameter npp scale,
+  
+* use scale paramteres to add or remove the arg to the cmd based on the video size
 
 # build
 

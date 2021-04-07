@@ -2,9 +2,10 @@ package videconv
 
 import (
 	"errors"
-	transcoder "github.com/AndresBott/videoconv/internal/transcode"
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -15,10 +16,11 @@ const (
 	defaultPollDuration = "5m"
 	DefaultThreads      = 1
 	DefaultFFmpeg       = "/usr/bin/ffmpeg"
+	DefaultFFprobe      = "/usr/bin/ffprobe"
 	defaultOverlayFname = "videoconv.yaml"
 )
 
-// prepare the app to run
+// loadConfig loads the selected location for the config file and loads the values into the app
 func (vc *App) loadConfig() error {
 
 	fileAbsPath, err := filepath.Abs(vc.ConfigFile)
@@ -66,6 +68,18 @@ func (vc *App) loadConfig() error {
 	if vc.ffmpegBin == "" {
 		vc.ffmpegBin = DefaultFFmpeg
 	}
+	if _, err := os.Stat(vc.ffmpegBin); os.IsNotExist(err) {
+		return fmt.Errorf("ffmpeg not found on path: %s", vc.ffmpegBin)
+	}
+
+	// ffprobe
+	vc.ffProbeBin = v.GetString("ffprobe")
+	if vc.ffProbeBin == "" {
+		vc.ffProbeBin = DefaultFFprobe
+	}
+	if _, err := os.Stat(vc.ffProbeBin); os.IsNotExist(err) {
+		return fmt.Errorf("ffprobe not found on path: %s", vc.ffProbeBin)
+	}
 
 	// Threads
 	vc.threads = v.GetInt("threads")
@@ -95,8 +109,8 @@ func (vc *App) loadConfig() error {
 		vc.locations = append(vc.locations, *item)
 	}
 
-	// load Default Video profiles
-	vc.profiles = make(map[string]transcoder.FfmpegOpts)
+	// load Video profiles
+	vc.profiles = make(map[string]profile)
 
 	confVidSettings := v.Get("profiles")
 	if confVidSettings == nil {
@@ -109,11 +123,11 @@ func (vc *App) loadConfig() error {
 	}
 
 	for _, vSet := range confVidSettList {
-		item, err := transcoder.NewFromInterface(vSet)
+		item, err := newProfile(vSet)
 		if err != nil {
 			return err
 		}
-		vc.profiles[item.Name] = *item
+		vc.profiles[item.name] = *item
 	}
 
 	log.Info("loaded config file: " + fileAbsPath)
