@@ -3,7 +3,6 @@ package videconv
 import (
 	"fmt"
 	"github.com/AndresBott/videoconv/internal/transcoder"
-	"github.com/davecgh/go-spew/spew"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"os"
@@ -127,6 +126,11 @@ func (vc *App) transcodeVideo(video string, location *location) {
 		r := fmt.Errorf("error getting the absolute path for input file: %s", err.Error())
 		log.Error(r)
 	}
+	absFailDir, err := filepath.Abs(location.path + "/" + location.failDir)
+	if err != nil {
+		r := fmt.Errorf("error getting the absolute path for failed file: %s", err.Error())
+		log.Error(r)
+	}
 
 	var toBeMoved []string
 
@@ -136,33 +140,33 @@ func (vc *App) transcodeVideo(video string, location *location) {
 			log.Infof("running profile: \"%s\"", profName)
 			pStart := time.Now()
 
-			spew.Dump(prf)
 			// my_original_video.<profileName>.<profileExtension>
 			outputFileName := filepath.Base(video) + "." + prf.name + "." + prf.extension
+
+			inputFile := filepath.Join(absInDir, video)
+			tempFile := filepath.Join(absTmpDir, outputFileName)
 
 			cfg := transcoder.Cfg{
 				FfmpegBin:  vc.ffmpegBin,
 				FfProbeBin: vc.ffProbeBin,
 				Template:   prf.template,
-				InputFile:  filepath.Join(absInDir, video),
-				OutputFile: filepath.Join(absTmpDir, outputFileName),
+				InputFile:  inputFile,
+				OutputFile: tempFile,
 			}
-
-			spew.Dump(cfg)
 
 			tr, err := transcoder.New(&cfg)
 			if err != nil {
 				r := fmt.Errorf("error with transcoder \"%s\" args: %s", profName, err.Error())
 				log.Error(r)
-				return
+				continue
 			}
 
 			// delete a potential tmp output file before starting a new conversion
-			if _, err := os.Stat(tr.GetOutputFile()); err == nil {
-				log.Warn("deleting OLD tmp file: " + tr.GetOutputFile())
-				e := os.Remove(tr.GetOutputFile())
+			if _, err := os.Stat(tempFile); err == nil {
+				log.Warn("deleting OLD tmp file: " + tempFile)
+				e := os.Remove(tempFile)
 				if e != nil {
-					log.Fatalf("unable to delete temp file %s, error: %v ", tr.GetOutputFile(), e)
+					log.Fatalf("unable to delete temp file %s, error: %v ", tempFile, e)
 				}
 			}
 
@@ -172,15 +176,8 @@ func (vc *App) transcodeVideo(video string, location *location) {
 			commads, err := tr.Run()
 			if err != nil {
 				log.Errorf("error while transcoding video with profile \"%s\" args: %s, command: %s", profName, err.Error(), commads)
-
-				// todo move file to failed
-				log.Warn("TODO: move file to fail location")
-
-				log.Warn("deleting temp file: " + tr.GetOutputFile())
-				e := os.Remove(tr.GetOutputFile())
-				if e != nil {
-					log.Fatalf("unable to delete temp file %s, error: %v ", tr.GetOutputFile(), e)
-				}
+				quarantineVideo(inputFile, tempFile, filepath.Join(absFailDir, video))
+				return
 			}
 			toBeMoved = append(toBeMoved, tr.GetOutputFile())
 			log.Infof("profile \"%s\" took %s", profName, time.Since(pStart))
@@ -213,6 +210,34 @@ func (vc *App) transcodeVideo(video string, location *location) {
 	err = os.Rename(filepath.Join(absInDir, video), filepath.Join(absOutDir, video))
 	if err != nil {
 		log.Fatalf("unable to move file %s, error: %v ", filepath.Join(absInDir, video), err)
+	}
+}
+
+// quarantineVideo will take the source video and move it to the failed location, deleting tmp files
+// if any os level operation fails the app will panic ( should be handled better in the future )
+func quarantineVideo(inputFile string, tempFile string, failFile string) {
+
+	destPath := filepath.Dir(failFile)
+	log.Warnf("moving file to ignore location: %s", destPath)
+
+	if _, err := os.Stat(destPath); os.IsNotExist(err) {
+		err = os.MkdirAll(destPath, 0755)
+		if err != nil {
+			log.Fatalf("unable to create folder: %s, error: %v ", destPath, err)
+		}
+	}
+
+	err := os.Rename(inputFile, failFile)
+	if err != nil {
+		log.Fatalf("unable to move file %s, error: %v ", inputFile, err)
+	}
+
+	if _, err := os.Stat(tempFile); err == nil {
+		log.Warn("deleting tmp file: " + tempFile)
+		e := os.Remove(tempFile)
+		if e != nil {
+			log.Fatalf("unable to delete temp file %s, error: %v ", tempFile, e)
+		}
 	}
 }
 
