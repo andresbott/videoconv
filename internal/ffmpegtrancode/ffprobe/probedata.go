@@ -1,24 +1,24 @@
-package transcoder
+package ffprobe
 
 // ProbeData is the root json data structure returned by an ffprobe.
 type ProbeData struct {
-	Streams []*Stream `json:"streams"`
-	Format  *Format   `json:"format"`
+	Streams []Stream `json:"streams"`
+	Format  Format   `json:"format"`
 }
 
 // Format is a json data structure to represent formats
 type Format struct {
-	Filename         string      `json:"filename"`
-	NBStreams        int         `json:"nb_streams"`
-	NBPrograms       int         `json:"nb_programs"`
-	FormatName       string      `json:"format_name"`
-	FormatLongName   string      `json:"format_long_name"`
-	StartTimeSeconds float64     `json:"start_time,string"`
-	DurationSeconds  float64     `json:"duration,string"`
-	Size             string      `json:"size"`
-	BitRate          string      `json:"bit_rate"`
-	ProbeScore       int         `json:"probe_score"`
-	Tags             *FormatTags `json:"tags"`
+	Filename         string     `json:"filename"`
+	NBStreams        int        `json:"nb_streams"`
+	NBPrograms       int        `json:"nb_programs"`
+	FormatName       string     `json:"format_name"`
+	FormatLongName   string     `json:"format_long_name"`
+	StartTimeSeconds float64    `json:"start_time,string"`
+	DurationSeconds  float64    `json:"duration,string"`
+	Size             string     `json:"size"`
+	BitRate          string     `json:"bit_rate"`
+	ProbeScore       int        `json:"probe_score"`
+	Tags             FormatTags `json:"tags"`
 }
 
 // FormatTags is a json data structure to represent format tags
@@ -32,7 +32,7 @@ type FormatTags struct {
 // Stream is a json data structure to represent streams.
 // A stream can be a video, audio, subtitle, etc type of stream.
 type Stream struct {
-	Index              int               `json:"index"`
+	Index              *int              `json:"index"`
 	ID                 string            `json:"id"`
 	CodecName          string            `json:"codec_name"`
 	CodecLongName      string            `json:"codec_long_name"`
