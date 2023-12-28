@@ -3,7 +3,7 @@
 log_level: "debug"
 
 # poll interval looking for new videos
-poll_interval: "5s"
+poll_interval: "30m"
 
 # Location for ffmpeg use /usr/bin/ffmpeg as default
 ffmpeg: ""
@@ -37,4 +37,17 @@ profiles:
       -i {{ .Input }}
       {{ if ( gt .Width 1000) }} -vf scale=-2:320  {{ end }}
       -c:v libx264 -crf 40 -preset fast
+      {{ .Output }}
+
+  # use a cuda enabled ffmpeg
+  - name: cuda_h265_960
+    template: |-
+      -i {{ .Input }} 
+      -c:v hevc_nvenc
+      -vf hwupload_cuda{{ if ( gt .Height 960) }},scale_npp=-2:960:interp_algo=super{{ end }} 
+      {{ if ( lt .FrameRate 25) }}-r 30{{ end }} 
+      -preset slow 
+      -b:v 4M -maxrate:v 7M 
+      -bufsize:v 8M     -profile:v main    -rc:v vbr_hq 
+      -rc-lookahead:v 32 -spatial_aq:v 1 -aq-strength:v 15 -f mp4 
       {{ .Output }}
