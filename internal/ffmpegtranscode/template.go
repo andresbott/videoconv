@@ -1,4 +1,4 @@
-package ffmpegtrancode
+package ffmpegtranscode
 
 import (
 	"bytes"

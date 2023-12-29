@@ -117,11 +117,11 @@ func TestGeneratedConfig(t *testing.T) {
 		Sleep:           5 * time.Minute,
 		FfmpegPath:      "/usr/bin/ffmpeg",
 		FfprobePath:     "/usr/bin/ffprobe",
-		VideoExtensions: []string{"avi", "mkv", "mov"},
+		VideoExtensions: []string{"avi", "mkv", "mov", "wmv", "mp4"},
 		ConfigLocation:  cfgFile,
 		Locations: []Location{
 			{
-				Path:      "./",
+				Path:      "./sample",
 				InputDir:  "in",
 				OutputDir: "out",
 				TmpDir:    "tmp",

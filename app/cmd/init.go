@@ -1,16 +1,14 @@
 package cmd
 
 import (
-	"github.com/AndresBott/videoconv/internal/videconv"
+	"github.com/AndresBott/videoconv/app/videoconv/config"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strconv"
 )
 
-func configCmd() *cobra.Command {
+func initCmd() *cobra.Command {
 
 	cmd := cobra.Command{
 		Use:   "init",
@@ -25,10 +23,10 @@ func configCmd() *cobra.Command {
 			}
 
 			dirs := []string{
-				videconv.DefaultInputDir,
-				videconv.DefaultOutputDir,
-				videconv.DefaultTmpDir,
-				videconv.DefaultFailDir,
+				config.DefaultInputDir,
+				config.DefaultOutputDir,
+				config.DefaultTmpDir,
+				config.DefaultFailDir,
 			}
 
 			for _, d := range dirs {
@@ -45,58 +43,14 @@ func configCmd() *cobra.Command {
 				}
 			}
 
-			configContent := `
----
-# sample configuration
-log_level: "info"
-
-# poll interval looking for new videos if running in daemon mode
-poll_interval: "30m"
-
-# Location for ffmpeg use /usr/bin/ffmpeg as default
-ffmpeg: "` + videconv.DefaultFFmpeg + `"
-# amount of threads configured for ffmpeg
-threads: ` + strconv.Itoa(videconv.DefaultThreads) + `
-
-# list of video file extensions to handle
-video_extensions:
-  - mp4
-  - wmv
-  - mkv
-  - avi
-
-# list of locations where to perform video conversions
-# see Readme for details
-locations:
-  - base_path: "./` + locationName + `"
-    applied:
-      - "720p_sample"
-
-# list of video conversion profiles to be used in the locations
-# see Readme for details
-profiles:
-
-  - name: 720p_sample
-    threads: "1"
-    codec: "libx264"
-    quality_crf: "23"
-    quality_preset: "medium"
-    quality_tune: "film"
-    scale: 720
-    duration: "30s"
-    start: "10s"
-    cuda_decoding: "false" # set to "true" to use -hwaccel cuda
-    cuda_hw_output: "false" # set to true to use -hwaccel_output_format cuda for late nvec encoding
-    extra: "" # add extra ffmpeg parameters not listed above
-`
+			configContent := config.SampleCfg()
 			d1 := []byte(configContent)
 
 			log.Infof("writing configuration file: %s ", configFile)
-			err := ioutil.WriteFile(configFile, d1, 0644)
+			err := os.WriteFile(configFile, d1, 0644)
 			if err != nil {
 
 			}
-
 		},
 	}
 

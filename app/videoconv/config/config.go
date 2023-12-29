@@ -252,8 +252,10 @@ func buildProfile(in interface{}) (Profile, error) {
 
 func SampleCfg() string {
 
-	return `#sample configuration file for videconv
-log_level: "info" 
+	return `# sample configuration file for videconv
+log_level: "info"
+
+# poll interval looking for new videos if running in daemon mode
 poll_interval: "5m"
 
 # if ffmpeg is in a differnt location
@@ -265,9 +267,12 @@ video_extensions:
   - avi
   - mkv
   - mov
+  - wmv
+  - mp4
 
+# list of locations where to perform video conversions
 locations:
-  - path: "./"
+  - path: "./sample"
     input:  "in" 	# input directory to put videos
     output: "out"   # output where processed videos are moved
     tmp:    "tmp"   # temporary directory while processing a video

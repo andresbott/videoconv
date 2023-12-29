@@ -21,7 +21,7 @@ func Run(versionStr string) {
 	}
 
 	cmd.AddCommand(runCmd())
-	cmd.AddCommand(configCmd())
+	cmd.AddCommand(initCmd())
 
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)

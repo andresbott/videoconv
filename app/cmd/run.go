@@ -1,7 +1,8 @@
 package cmd
 
 import (
-	"github.com/AndresBott/videoconv/internal/videconv"
+	"github.com/AndresBott/videoconv/app/videoconv"
+	"github.com/AndresBott/videoconv/app/videoconv/config"
 	"github.com/spf13/cobra"
 )
 
@@ -15,12 +16,17 @@ func runCmd() *cobra.Command {
 		Short: "run transcoding on the configured destinations",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
-				// main execution path if no args are passed
-				app := videconv.App{
-					ConfigFile: configfile,
-					DaemonMode: daemon,
+
+				cfg, err := config.NewFromFile(configfile)
+				if err != nil {
+					return err
 				}
-				return app.Start()
+				vidConv, err := videoconv.New(cfg)
+				if err != nil {
+					return err
+				}
+				vidConv.Run()
+
 			}
 			return nil
 		},

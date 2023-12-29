@@ -1,8 +1,8 @@
-package ffmpegtrancode
+package ffmpegtranscode
 
 import (
 	"fmt"
-	"github.com/AndresBott/videoconv/internal/ffmpegtrancode/ffprobe"
+	"github.com/AndresBott/videoconv/internal/ffmpegtranscode/ffprobe"
 	"os"
 	"path/filepath"
 )
@@ -61,6 +61,7 @@ func (tc *Transcoder) GetCmd(input, output string, template Template) ([]string,
 	}
 
 	// todo the template should be able to change the extension
+	// TODO ??? the template should also be able to skip a file, e.g. if specific transformation is not supported or required
 	// make sure the path is in absolute notation
 	outFile, err := filepath.Abs(output)
 	if err != nil {
