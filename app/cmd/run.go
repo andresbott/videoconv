@@ -10,6 +10,7 @@ func runCmd() *cobra.Command {
 
 	configfile := "videoconv.yaml"
 	daemon := false
+	debug := false
 
 	cmd := cobra.Command{
 		Use:   "run",
@@ -20,6 +21,10 @@ func runCmd() *cobra.Command {
 				cfg, err := config.NewFromFile(configfile)
 				if err != nil {
 					return err
+				}
+
+				if debug {
+					cfg.LogLevel = "debug"
 				}
 
 				vidConv, err := videoconv.New(cfg)
@@ -34,6 +39,7 @@ func runCmd() *cobra.Command {
 	}
 	cmd.Flags().StringVarP(&configfile, "config", "c", configfile, "configuration file")
 	cmd.Flags().BoolVarP(&daemon, "daemon", "d", daemon, "run in daemon mode")
+	cmd.Flags().BoolVarP(&debug, "verbose", "v", debug, "run in verbose mode")
 
 	return &cmd
 }

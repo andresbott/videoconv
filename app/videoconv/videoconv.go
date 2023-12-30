@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/AndresBott/videoconv/app/videoconv/config"
 	"github.com/AndresBott/videoconv/internal/ffmpegtranscode"
+	"github.com/AndresBott/videoconv/internal/ffprobe"
 	"github.com/AndresBott/videoconv/internal/tmpl"
 	log "github.com/sirupsen/logrus"
 	"os"
@@ -16,6 +17,7 @@ type Converter struct {
 	Cfg        config.Conf
 	DaemonMode bool
 	ffmpeg     *ffmpegtranscode.Transcoder
+	ffprobe    ffprobe.FfProbe
 }
 
 // used for testing only
@@ -24,16 +26,21 @@ var processFn func(absVideo, absIn, absOut, absTmp, absFail string, profiles []c
 func New(cfg config.Conf) (*Converter, error) {
 
 	ffmpeg, err := ffmpegtranscode.New(ffmpegtranscode.Cfg{
-		FfmpegBin:  cfg.FfmpegPath,
-		FfprobeBin: cfg.FfprobePath,
+		FfmpegBin: cfg.FfmpegPath,
 	})
 	if err != nil {
 		return nil, err
 	}
 
+	fprobe, err := ffprobe.New(cfg.FfprobePath)
+	if err != nil {
+		return nil, err
+	}
+
 	c := Converter{
-		Cfg:    cfg,
-		ffmpeg: ffmpeg,
+		Cfg:     cfg,
+		ffmpeg:  ffmpeg,
+		ffprobe: fprobe,
 	}
 
 	// log level (not sure if I like this here)
@@ -121,7 +128,7 @@ func (vc *Converter) Run() {
 
 // convert Videos on one location
 func (vc *Converter) runLocation(location config.Location) {
-	log.Debug("checking location:" + location.Path)
+	log.Debug("running location:" + location.Path)
 	locationPath, err := filepath.Abs(filepath.Join(filepath.Dir(vc.Cfg.ConfigLocation), location.Path))
 	if err != nil {
 		log.Errorf("error generating absolute path for location \"%s\", skipping location, error: %v", locationPath, err)
@@ -171,20 +178,36 @@ func renameFile(in, profileName string, overwriteExtension string) string {
 	return name
 }
 
+type templateData struct {
+	Args      []string `json:"args"`
+	Extension string   `json:"extension"`
+}
+
+type videoData struct {
+	Video   ffprobe.ProbeData
+	Profile map[string]string
+}
+
 // processVideo is responsible for taking one video and generate all the renditions as per profile configuration
-// it returns the list of done Videos, if something goes wrong an error is returned as well
 func (vc *Converter) processVideo(absVideo, absIn, absOut, absTmp, absFail string, profiles []config.Profile) {
 	log.Infof("procesing video: \"%s\"", filepath.Base(absVideo))
 
 	cmd := []string{}
 	err := func() error {
 
+		probeData, err := vc.ffprobe.Probe(absVideo)
+		if err != nil {
+			return fmt.Errorf("unable to run ffprobe on video: %v", err)
+		}
+
 		doneVideos := []string{}
 		for _, profile := range profiles {
+
 			tmplFile, err := tmpl.FindTemplate(vc.Cfg.TmplDirs, profile.Template)
 			if err != nil {
 				return err
 			}
+			log.Debugf("using template: \"%s\"", tmplFile)
 			profileTmpl, err := tmpl.NewTmplFromFile(tmplFile)
 			if err != nil {
 				return err
@@ -193,13 +216,20 @@ func (vc *Converter) processVideo(absVideo, absIn, absOut, absTmp, absFail strin
 				return fmt.Errorf("profile name cannot be empty")
 			}
 
-			// todo put in ffmpeg probe + profile data
-			tmplData, err := profileTmpl.Parse("")
+			// add ffprobe and profile data into the template
+			data := videoData{
+				Video:   probeData,
+				Profile: profile.Args,
+			}
+			tmplData := templateData{}
+			err = profileTmpl.ParseJson(data, &tmplData)
 			if err != nil {
 				return fmt.Errorf("error parsing template: %v", err)
 			}
-			outFileName := renameFile(filepath.Base(absVideo), profile.Name, tmplData.FileExt)
+			tmplData.Args = dropEmpty(tmplData.Args)
+			log.Debugf("rendered template: \"%s\"", tmplData)
 
+			outFileName := renameFile(filepath.Base(absVideo), profile.Name, tmplData.Extension)
 			tmpFilePath := filepath.Join(absTmp, outFileName)
 			// delete a potential tmp output file before starting a new conversion
 			if _, err := os.Stat(tmpFilePath); err == nil {
@@ -207,15 +237,14 @@ func (vc *Converter) processVideo(absVideo, absIn, absOut, absTmp, absFail strin
 				e := os.Remove(tmpFilePath)
 				if e != nil {
 					return fmt.Errorf("unable to delete temp file %s, error: %v ", tmpFilePath, e)
-
 				}
 			}
 
-			// todo test error in ffmpeg
 			cmd, err = vc.ffmpeg.Run(absVideo, tmpFilePath, tmplData.Args)
 			if err != nil {
 				return fmt.Errorf("error trancoding video: %v", err)
 			}
+			log.Debugf("ffmpeg cmd: \"%s\"", cmd)
 			doneVideos = append(doneVideos, tmpFilePath)
 		}
 
@@ -253,6 +282,7 @@ func (vc *Converter) processVideo(absVideo, absIn, absOut, absTmp, absFail strin
 
 	}()
 	if err != nil {
+
 		relativePath, err2 := filepath.Rel(absIn, absVideo)
 		if err2 != nil {
 			panic(fmt.Errorf("failure in getting relative path during error handling: %s", err))
@@ -279,14 +309,6 @@ func (vc *Converter) processVideo(absVideo, absIn, absOut, absTmp, absFail strin
 		}
 
 	}
-
-	//// todo move to failed in case of error
-	//if err != nil {
-	//	log.Errorf("error processing video: %s, %s", video, err.Error())
-	//}
-	//
-	//return nil
-
 }
 
 // findVideos recursively searches Videos in the rootPath and returns an array of relative paths of Videos
@@ -332,4 +354,15 @@ func isVideo(val string, videoExtensions []string) bool {
 		}
 	}
 	return false
+}
+
+// remove empty items in slice
+func dropEmpty(in []string) []string {
+	var out []string
+	for _, v := range in {
+		if strings.TrimSpace(v) != "" {
+			out = append(out, v)
+		}
+	}
+	return out
 }

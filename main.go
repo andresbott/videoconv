@@ -8,8 +8,12 @@ import (
 
 var version = "DEV"
 var commit = "SNAPSHOT"
-var date = time.Now()
+var date string
 
 func main() {
-	cmd.Run(fmt.Sprintf("%s - %s (%s)", version, commit, date.Format("2006-01-02")))
+	if date == "" {
+		now := time.Now()
+		date = now.Format("2006-01-02")
+	}
+	cmd.Run(fmt.Sprintf("%s - %s (%s)", version, commit, date))
 }

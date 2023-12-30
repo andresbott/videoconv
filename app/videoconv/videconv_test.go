@@ -47,6 +47,7 @@ func newVideConv(t *testing.T) (*Converter, string) {
 		"empty":        `{"args":[]}`,
 		"mkv":          `{"args":[],"extension":"mkv"}`,
 		"broken-param": `{"args":["-a"]}`,
+		"extension":    `{"extension":"{{ .Profile.Extension }}"}`,
 	}
 
 	for k, v := range templates {
@@ -57,7 +58,7 @@ func newVideConv(t *testing.T) (*Converter, string) {
 	}
 
 	cfg := config.Conf{
-		LogLevel: "error",
+		LogLevel: "debug",
 		TmplDirs: []string{
 			filepath.Join(tmpDir, "sample/templates"),
 		},
@@ -86,7 +87,7 @@ func newVideConv(t *testing.T) (*Converter, string) {
 }
 
 func TestCheck(t *testing.T) {
-
+	log.SetOutput(io.Discard) // discard the log entries
 	vc, locationDir := newVideConv(t)
 
 	// check but don`t create
@@ -128,6 +129,7 @@ func TestCheck(t *testing.T) {
 }
 
 func TestRunLocation(t *testing.T) {
+	log.SetOutput(io.Discard) // discard the log entries
 	vc, tmpPath := newVideConv(t)
 	err := vc.Check(true)
 	if err != nil {
@@ -217,7 +219,6 @@ func TestProcessVideo(t *testing.T) {
 				}
 			},
 		},
-
 		{
 			name: "ffmpeg failure",
 			profiles: []config.Profile{
@@ -232,6 +233,24 @@ func TestProcessVideo(t *testing.T) {
 			expect: []string{
 				"fail/nested/video.mp4",
 				"in/video1.MKV",
+			},
+		},
+		{
+			name: "template value from profile",
+			profiles: []config.Profile{
+				{
+					Name:     "test",
+					Template: "extension",
+					Args: map[string]string{
+						"Extension": "mov",
+					},
+				},
+			},
+			expect: []string{
+
+				"in/video1.MKV",
+				"out/nested/video.mp4",
+				"out/nested/video.test.mov",
 			},
 		},
 	}
@@ -272,7 +291,7 @@ func TestProcessVideo(t *testing.T) {
 				ext := filepath.Ext(fPath)
 				ext = ext[1:]
 				videoEx := []string{
-					"mp4", "mkv",
+					"mp4", "mkv", "mov",
 				}
 				if !isVideo(ext, videoEx) {
 					return nil
@@ -288,6 +307,7 @@ func TestProcessVideo(t *testing.T) {
 			if diff := cmp.Diff(files, tc.expect); diff != "" {
 				t.Errorf("unexpected value (-got +want)\n%s", diff)
 			}
+
 		})
 	}
 

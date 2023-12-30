@@ -76,6 +76,11 @@ func TestFindTemplate(t *testing.T) {
 
 }
 
+type sampleData struct {
+	Args      []string `json:"args"`
+	Extension string   `json:"extension"`
+}
+
 func TestTemplateArgs(t *testing.T) {
 
 	type data struct {
@@ -86,7 +91,7 @@ func TestTemplateArgs(t *testing.T) {
 		name     string
 		tmplFile string
 		data     data
-		expect   TemplateData
+		expect   sampleData
 	}{
 		{
 			name:     "find file",
@@ -94,13 +99,13 @@ func TestTemplateArgs(t *testing.T) {
 			data: data{
 				Key: "SomeValue",
 			},
-			expect: TemplateData{
+			expect: sampleData{
 				Args: []string{
 					"-v",
 					"-key",
 					"value",
 				},
-				FileExt: "mkv",
+				Extension: "mkv",
 			},
 		},
 	}
@@ -112,7 +117,8 @@ func TestTemplateArgs(t *testing.T) {
 				t.Fatalf("unexpected error: %s", err)
 			}
 
-			got, err := tmpl.Parse(tc.data)
+			got := sampleData{}
+			err = tmpl.ParseJson(tc.data, &got)
 			if err != nil {
 				t.Fatalf("unexpected error: %s", err)
 			}

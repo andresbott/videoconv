@@ -32,44 +32,25 @@ type TemplateNotFoundErr struct {
 	tmpl string
 }
 
-type TemplateData struct {
-	Args    []string `json:"args"`
-	FileExt string   `json:"extension"`
-}
-
-func (tmpl Template) Parse(data any) (TemplateData, error) {
+func (tmpl Template) ParseJson(data, payload any) error {
 	tpl := tmpl.tmplStr
 	tpl = strings.ReplaceAll(tpl, "\n", " ")
 
-	t, err := template.New("irrelevant").Parse(tpl)
+	t, err := template.New("videoTmpl").Parse(tpl)
 	if err != nil {
-		return TemplateData{}, fmt.Errorf("unable to parse template: %s", err)
+		return fmt.Errorf("unable to parse template: %s", err)
 	}
 
 	var buf bytes.Buffer
 	if err := t.Execute(&buf, data); err != nil {
-		return TemplateData{}, err
+		return err
 	}
-
-	td := TemplateData{}
-	err = json.Unmarshal(buf.Bytes(), &td)
+	err = json.Unmarshal(buf.Bytes(), &payload)
 	if err != nil {
-		return td, fmt.Errorf("unable to unmarshal json template: %s", err)
+		return fmt.Errorf("unable to unmarshal json template: %s", err)
 	}
-	td.Args = dropEmpty(td.Args)
 
-	return td, nil
-}
-
-// remove empty items in slice
-func dropEmpty(in []string) []string {
-	var out []string
-	for _, v := range in {
-		if strings.TrimSpace(v) != "" {
-			out = append(out, v)
-		}
-	}
-	return out
+	return nil
 }
 
 func (t TemplateNotFoundErr) Error() string {

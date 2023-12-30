@@ -14,8 +14,7 @@ type Transcoder struct {
 }
 
 type Cfg struct {
-	FfmpegBin  string
-	FfprobeBin string
+	FfmpegBin string
 }
 
 // New creates a transcoder capable of running ffmpeg

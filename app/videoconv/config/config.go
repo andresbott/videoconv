@@ -251,10 +251,12 @@ func buildProfile(in interface{}) (Profile, error) {
 		case "template":
 			pr.Template = value
 			continue
+		case "name":
+			pr.Name = value
+			continue
 		default:
 			pr.Args[k.(string)] = value
 		}
-
 	}
 
 	return pr, nil
@@ -288,7 +290,8 @@ locations:
     tmp:    "tmp"   # temporary directory while processing a video
     fail:   "fail"  # failed videos are moved here
     profiles:
-      - template: "sample"
+      - name: sample 
+	    template: "sample"
         key: "value"
 
 template_dirs:
