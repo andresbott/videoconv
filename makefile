@@ -7,6 +7,7 @@ fmt: ## Run go fmt on the project
 	@go fmt ./...
 
 test: fmt ## Run tests
+	@golangci-lint run -v
 	@go test -v ./...
 
 build: ## Build the binary

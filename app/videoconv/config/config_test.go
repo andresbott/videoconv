@@ -136,6 +136,7 @@ func TestGeneratedConfig(t *testing.T) {
 				FailDir:   "fail",
 				Profiles: []Profile{
 					{
+						Name:     "sample",
 						Template: "sample",
 						Args: map[string]string{
 							"key": "value",

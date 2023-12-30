@@ -291,7 +291,7 @@ locations:
     fail:   "fail"  # failed videos are moved here
     profiles:
       - name: sample 
-	    template: "sample"
+        template: "sample"
         key: "value"
 
 template_dirs:
