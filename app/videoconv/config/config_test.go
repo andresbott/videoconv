@@ -38,6 +38,10 @@ func TestLoadConfig(t *testing.T) {
 						Profiles:  nil,
 					},
 				},
+				TmplDirs: []string{
+					"/etc/videconv/templates",
+					"./sample/templates",
+				},
 			},
 		},
 		{
@@ -80,6 +84,10 @@ func TestLoadConfig(t *testing.T) {
 						FailDir:   "error",
 						Profiles:  nil,
 					},
+				},
+				TmplDirs: []string{
+					"/etc/videconv/templates",
+					"./sample/templates",
 				},
 			},
 		},
@@ -136,15 +144,13 @@ func TestGeneratedConfig(t *testing.T) {
 				},
 			},
 		},
+		TmplDirs: []string{
+			"/etc/videconv/templates",
+			"./sample/templates",
+		},
 	}
 
 	if diff := cmp.Diff(got, expect); diff != "" {
 		t.Errorf("unexpected value (-got +want)\n%s", diff)
 	}
-
-}
-
-func getCurrentAbsPath() string {
-	abs, _ := filepath.Abs("./")
-	return abs
 }

@@ -1,7 +1,8 @@
-package ffmpegtranscode
+package tmpl
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -31,24 +32,33 @@ type TemplateNotFoundErr struct {
 	tmpl string
 }
 
-func (tmpl Template) Args(data any) ([]string, error) {
+type TemplateData struct {
+	Args    []string `json:"args"`
+	FileExt string   `json:"extension"`
+}
+
+func (tmpl Template) Parse(data any) (TemplateData, error) {
 	tpl := tmpl.tmplStr
 	tpl = strings.ReplaceAll(tpl, "\n", " ")
 
 	t, err := template.New("irrelevant").Parse(tpl)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse template: %s", err)
+		return TemplateData{}, fmt.Errorf("unable to parse template: %s", err)
 	}
 
 	var buf bytes.Buffer
-
 	if err := t.Execute(&buf, data); err != nil {
-		return nil, err
+		return TemplateData{}, err
 	}
-	result := buf.String()
-	values := strings.Split(result, " ")
-	values = dropEmpty(values)
-	return values, nil
+
+	td := TemplateData{}
+	err = json.Unmarshal(buf.Bytes(), &td)
+	if err != nil {
+		return td, fmt.Errorf("unable to unmarshal json template: %s", err)
+	}
+	td.Args = dropEmpty(td.Args)
+
+	return td, nil
 }
 
 // remove empty items in slice
@@ -70,11 +80,14 @@ func (t TemplateNotFoundErr) Error() string {
 // returns the path of the template,
 // if a template is present in more than one folder, the last one will be returned
 func FindTemplate(folders []string, name string) (string, error) {
-
 	fPath := ""
 	for _, folder := range folders {
 		files, err := os.ReadDir(folder)
 		if err != nil {
+
+			if strings.Contains(err.Error(), "no such file or directory") {
+				continue
+			}
 			return "", err
 		}
 
@@ -85,6 +98,7 @@ func FindTemplate(folders []string, name string) (string, error) {
 			}
 		}
 	}
+
 	if fPath == "" {
 		return "", TemplateNotFoundErr{
 			tmpl: name,

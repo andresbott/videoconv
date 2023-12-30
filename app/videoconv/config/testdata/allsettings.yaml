@@ -22,3 +22,6 @@ locations:
     tmp:    "temp"
     fail:   "error"
 
+template_dirs:
+  - /etc/videconv/templates
+  - ./sample/templates

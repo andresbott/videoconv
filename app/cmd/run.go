@@ -21,6 +21,7 @@ func runCmd() *cobra.Command {
 				if err != nil {
 					return err
 				}
+
 				vidConv, err := videoconv.New(cfg)
 				if err != nil {
 					return err

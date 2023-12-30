@@ -15,7 +15,6 @@ func initCmd() *cobra.Command {
 		Short: "generate a basic configuration and folder structure",
 		Run: func(cmd *cobra.Command, args []string) {
 
-			locationName := "main"
 			configFile, _ := filepath.Abs("./videoconv.yaml")
 			if _, err := os.Stat(configFile); err == nil {
 				log.Warn("destination already initialized, skipping...")
@@ -31,7 +30,7 @@ func initCmd() *cobra.Command {
 
 			for _, d := range dirs {
 
-				dir, err := filepath.Abs(filepath.Join("./"+locationName, d))
+				dir, err := filepath.Abs(filepath.Join("./sample", d))
 				if err != nil {
 					log.Fatalf("unable to create abspath: %s", err)
 				}
@@ -49,6 +48,8 @@ func initCmd() *cobra.Command {
 			log.Infof("writing configuration file: %s ", configFile)
 			err := os.WriteFile(configFile, d1, 0644)
 			if err != nil {
+				// todo handle err
+				return
 
 			}
 		},

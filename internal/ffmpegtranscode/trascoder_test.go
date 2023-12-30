@@ -14,7 +14,7 @@ func TestGetCmd(t *testing.T) {
 	tcs := []struct {
 		name   string
 		in     Cfg
-		tmpl   Template
+		args   []string
 		expect []string
 	}{
 		{
@@ -22,8 +22,8 @@ func TestGetCmd(t *testing.T) {
 			in: Cfg{
 				FfmpegBin: "/usr/bin/ffmpeg",
 			},
-			tmpl: Template{
-				tmplStr: "-v -key value",
+			args: []string{
+				"-v", "-key", "value",
 			},
 			expect: []string{
 				"/usr/bin/ffmpeg",
@@ -44,7 +44,7 @@ func TestGetCmd(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			cmd, err := ffmpeg.GetCmd(inputFile, outputFile, tc.tmpl)
+			cmd, err := ffmpeg.GetCmd(inputFile, outputFile, tc.args)
 			if err != nil {
 				t.Fatal(err)
 			}

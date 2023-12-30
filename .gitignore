@@ -11,6 +11,8 @@ sample-data/fail/*
 # User-specific stuff:
 .idea/
 *.iml
+videoconv.yaml
+sample
 
 dist
 target

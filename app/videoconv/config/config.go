@@ -16,6 +16,7 @@ const (
 	DefaultFFmpeg          = "/usr/bin/ffmpeg"
 	DefaultFFprobe         = "/usr/bin/ffprobe"
 	DefaultVideoExtensions = "avi,mkv,mov"
+	DefaultTmplDirs        = "/etc/videconv/templates,./sample/templates"
 )
 
 type Conf struct {
@@ -29,6 +30,8 @@ type Conf struct {
 
 	// locations
 	Locations []Location
+	// templates
+	TmplDirs []string
 }
 
 func NewFromFile(configFile string) (Conf, error) {
@@ -112,6 +115,12 @@ func (cfg *Conf) systemSettings(v *viper.Viper) error {
 	cfg.VideoExtensions = v.GetStringSlice("video_extensions")
 	if len(cfg.VideoExtensions) == 0 {
 		cfg.VideoExtensions = strings.Split(DefaultVideoExtensions, ",")
+	}
+
+	// Template locations
+	cfg.TmplDirs = v.GetStringSlice("template_dirs")
+	if len(cfg.TmplDirs) == 0 {
+		cfg.TmplDirs = strings.Split(DefaultTmplDirs, ",")
 	}
 
 	return nil
@@ -216,6 +225,7 @@ func buildLocation(in interface{}) (Location, error) {
 }
 
 type Profile struct {
+	Name     string
 	Template string
 	Args     map[string]string
 }
@@ -229,11 +239,11 @@ func buildProfile(in interface{}) (Profile, error) {
 
 		// stringify the value
 		value := ""
-		switch v.(type) {
+		switch v := v.(type) {
 		case int:
 			value = fmt.Sprintf("%d", v)
 		case string:
-			value = v.(string)
+			value = v
 		}
 
 		// parse the keys
@@ -280,6 +290,10 @@ locations:
     profiles:
       - template: "sample"
         key: "value"
+
+template_dirs:
+  - /etc/videconv/templates
+  - ./sample/templates
 
 `
 

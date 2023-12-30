@@ -11,5 +11,5 @@ var commit = "SNAPSHOT"
 var date = time.Now()
 
 func main() {
-	cmd.Run(fmt.Sprintf("%s - %s (%s)", version, commit, date.Format("2006-02-01")))
+	cmd.Run(fmt.Sprintf("%s - %s (%s)", version, commit, date.Format("2006-01-02")))
 }

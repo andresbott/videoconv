@@ -1,4 +1,4 @@
-package ffmpegtranscode
+package tmpl
 
 import (
 	"github.com/google/go-cmp/cmp"
@@ -86,7 +86,7 @@ func TestTemplateArgs(t *testing.T) {
 		name     string
 		tmplFile string
 		data     data
-		expect   []string
+		expect   TemplateData
 	}{
 		{
 			name:     "find file",
@@ -94,10 +94,13 @@ func TestTemplateArgs(t *testing.T) {
 			data: data{
 				Key: "SomeValue",
 			},
-			expect: []string{
-				"-v",
-				"-key",
-				"value",
+			expect: TemplateData{
+				Args: []string{
+					"-v",
+					"-key",
+					"value",
+				},
+				FileExt: "mkv",
 			},
 		},
 	}
@@ -109,7 +112,7 @@ func TestTemplateArgs(t *testing.T) {
 				t.Fatalf("unexpected error: %s", err)
 			}
 
-			got, err := tmpl.Args(tc.data)
+			got, err := tmpl.Parse(tc.data)
 			if err != nil {
 				t.Fatalf("unexpected error: %s", err)
 			}
