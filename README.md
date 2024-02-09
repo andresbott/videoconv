@@ -2,35 +2,38 @@
 
 Batch video conversion based on directory observation
 
-videoconv searches for video files in a given directory and applies transcoding templates to those video files to
-move the finalized files to an output directory
+videoconv searches recursively for video files in a given (input) directory and applies transcoding 
+profiles to those videos, finally it moves the done files to an output directory.
 
 Multiple locations with different templates are supported.
 
-videoconv can run as cli or daemon regularly looking for new files that have been dropped in the observation directory
+videoconv can run as cli or daemon regularly looking for new files that have been dropped in the observation directory.
 
 
-# Getting started
+## Getting started
 
     # create a simple directory stucture
     $ videoconv init
 
     ./videoconv.yaml
-    ./main/in
-    ./main/fail
-    ./main/out
-    ./main/tmp
+    ./sample/in
+    ./sample/fail
+    ./sample/out
+    ./sample/tmp
     
+## For developers
 
-# Improvement ideas
-* add profile flag -hwaccel for hw decoding
+### Improvement ideas
 
-* us a task runner to allow multiple executions to run in parallel, e.g when using GPU encoding, and you have more than one gpu
+* use a task runner to allow multiple executions to run in parallel, 
+e.g when using GPU encoding, and you have more than one gpu
 
-* add parameter npp scale,
-  
-* use scale paramteres to add or remove the arg to the cmd based on the video size
-
-# build
+### TODOS
+* ffprobe already provides some precalculated data, e.g. 
+  * simplified informationa bout audio stremas
+* use json5 to allow comments in json
+* probe and run use copied code to render the template => unify
+* add dry run to print actions but not execute
+### Build
 
     goreleaser release --rm-dist --skip-publish --skip-validate

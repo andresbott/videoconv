@@ -1,0 +1,27 @@
+log_level: "error"
+poll_interval: "10s"
+
+ffmpeg: "/usr/local/bin/ffmpeg-static"
+ffprobe: "/usr/local/bin/ffprobe-static"
+
+video_extensions:
+  - mkv
+
+locations:
+  - path: "./"
+    profiles:
+      - template: "mp4-x265aac"
+        height: "720"
+        bitrate: "4M"
+      - template: "test"
+        key: "value"
+
+  - path:   "./some_path"
+    input:  "input"
+    output: "output"
+    tmp:    "temp"
+    fail:   "error"
+
+template_dirs:
+  - /etc/videconv/templates
+  - ./sample/templates
