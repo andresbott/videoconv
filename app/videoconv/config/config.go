@@ -296,8 +296,15 @@ locations:
 
 template_dirs:
   - /etc/videconv/templates
-  - ./sample/templates
+  - ./templates
 
 `
 
+}
+func SampleTmpl() string {
+	return `{
+"args": [],
+"extension": ""
+}
+`
 }

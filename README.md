@@ -28,6 +28,12 @@ videoconv can run as cli or daemon regularly looking for new files that have bee
 * use a task runner to allow multiple executions to run in parallel, 
 e.g when using GPU encoding, and you have more than one gpu
 
+### TODOS
+* ffprobe already provides some precalculated data, e.g. 
+  * simplified informationa bout audio stremas
+* use json5 to allow comments in json
+* probe and run use copied code to render the template => unify
+* add dry run to print actions but not execute
 ### Build
 
     goreleaser release --rm-dist --skip-publish --skip-validate

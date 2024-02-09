@@ -1,32 +1,78 @@
 package ffprobe
 
+import (
+	"math"
+	"strconv"
+)
+
 // ProbeData is the root json data structure returned by an ffprobe.
 type ProbeData struct {
-	Streams []Stream `json:"streams"`
-	Format  Format   `json:"format"`
+	Format   Format     `json:"format"`
+	Streams  []Stream   `json:"streams"`
+	Chapters []Chapters `json:"chapters"`
+	Summary  Summary    `json:"Summary"`
+}
+
+const CodecTypeVideo = "video"
+
+func (p *ProbeData) Digest() {
+
+	video := Video{}
+	for _, s := range p.Streams {
+		if s.CodecType == CodecTypeVideo {
+			video.H = s.Height
+			video.W = s.Width
+			video.Format = s.CodecName
+
+			break
+		}
+	}
+
+	b, _ := strconv.Atoi(p.Format.BitRate)
+	video.BitRate = b
+	video.BitRateM = math.Round((float64(b)/1000000)*100) / 100
+
+	p.Summary = Summary{
+		Video: video,
+	}
+
+}
+
+type Summary struct {
+	Video Video
+}
+
+type Video struct {
+	Format   string
+	H        int
+	W        int
+	BitRate  int
+	BitRateM float64
 }
 
 // Format is a json data structure to represent formats
 type Format struct {
-	Filename         string     `json:"filename"`
-	NBStreams        int        `json:"nb_streams"`
-	NBPrograms       int        `json:"nb_programs"`
-	FormatName       string     `json:"format_name"`
-	FormatLongName   string     `json:"format_long_name"`
-	StartTimeSeconds float64    `json:"start_time,string"`
-	DurationSeconds  float64    `json:"duration,string"`
-	Size             string     `json:"size"`
-	BitRate          string     `json:"bit_rate"`
-	ProbeScore       int        `json:"probe_score"`
-	Tags             FormatTags `json:"tags"`
+	Filename         string            `json:"filename"`
+	NBStreams        int               `json:"nb_streams"`
+	NBPrograms       int               `json:"nb_programs"`
+	FormatName       string            `json:"format_name"`
+	FormatLongName   string            `json:"format_long_name"`
+	StartTimeSeconds float64           `json:"start_time,string"`
+	DurationSeconds  float64           `json:"duration,string"`
+	Size             string            `json:"size"`
+	BitRate          string            `json:"bit_rate"`
+	ProbeScore       int               `json:"probe_score"`
+	Tags             map[string]string `json:"tags"`
 }
 
-// FormatTags is a json data structure to represent format tags
-type FormatTags struct {
-	MajorBrand       string `json:"major_brand"`
-	MinorVersion     string `json:"minor_version"`
-	CompatibleBrands string `json:"compatible_brands"`
-	CreationTime     string `json:"creation_time"`
+type Chapters struct {
+	ID        int64             `json:"id"`
+	TimeBase  string            `json:"time_base"`
+	Start     int64             `json:"start"`
+	StartTime string            `json:"start_time"`
+	End       int64             `json:"end"`
+	EndTime   string            `json:"end_time"`
+	Tags      map[string]string `json:"tags"`
 }
 
 // Stream is a json data structure to represent streams.

@@ -22,6 +22,7 @@ func Run(versionStr string) {
 
 	cmd.AddCommand(runCmd())
 	cmd.AddCommand(initCmd())
+	cmd.AddCommand(ProbeCmd())
 
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)

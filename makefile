@@ -15,7 +15,7 @@ build: ## Build the binary
 	@go build -o target/videconv main.go
 
 package: ## build installable packages
-	@echo "todo"
+	@goreleaser release --rm-dist --skip-publish --skip-validate
 
 help: ## Show this help
 	@egrep '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST)  | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m·%-20s\033[0m %s\n", $$1, $$2}'

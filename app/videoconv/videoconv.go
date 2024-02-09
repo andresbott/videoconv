@@ -179,13 +179,15 @@ func renameFile(in, profileName string, overwriteExtension string) string {
 }
 
 type templateData struct {
+	Init      []string `json:"init"`
 	Args      []string `json:"args"`
 	Extension string   `json:"extension"`
 }
 
 type videoData struct {
-	Video   ffprobe.ProbeData
-	Profile map[string]string
+	Video     ffprobe.ProbeData
+	Profile   map[string]string
+	LocalData map[string]interface{} // used to allow template to allocate data
 }
 
 // processVideo is responsible for taking one video and generate all the renditions as per profile configuration
@@ -218,8 +220,9 @@ func (vc *Converter) processVideo(absVideo, absIn, absOut, absTmp, absFail strin
 
 			// add ffprobe and profile data into the template
 			data := videoData{
-				Video:   probeData,
-				Profile: profile.Args,
+				Video:     probeData,
+				Profile:   profile.Args,
+				LocalData: map[string]interface{}{},
 			}
 			tmplData := templateData{}
 			err = profileTmpl.ParseJson(data, &tmplData)
@@ -227,6 +230,7 @@ func (vc *Converter) processVideo(absVideo, absIn, absOut, absTmp, absFail strin
 				return fmt.Errorf("error parsing template: %v", err)
 			}
 			tmplData.Args = dropEmpty(tmplData.Args)
+			tmplData.Init = dropEmpty(tmplData.Init)
 			log.Debugf("rendered template: \"%s\"", tmplData)
 
 			outFileName := renameFile(filepath.Base(absVideo), profile.Name, tmplData.Extension)
@@ -240,7 +244,7 @@ func (vc *Converter) processVideo(absVideo, absIn, absOut, absTmp, absFail strin
 				}
 			}
 
-			cmd, err = vc.ffmpeg.Run(absVideo, tmpFilePath, tmplData.Args)
+			cmd, err = vc.ffmpeg.Run(absVideo, tmpFilePath, tmplData.Init, tmplData.Args)
 			if err != nil {
 				return fmt.Errorf("error trancoding video: %v", err)
 			}
@@ -288,7 +292,7 @@ func (vc *Converter) processVideo(absVideo, absIn, absOut, absTmp, absFail strin
 			panic(fmt.Errorf("failure in getting relative path during error handling: %s", err))
 		}
 
-		log.Errorf("Error transcoding video: \"%s\" %s", relativePath, err)
+		log.Errorf("Error transcoding video: \"%s\", %s", relativePath, err)
 		if len(cmd) > 0 {
 			log.Errorf("command run: \"%s\"", strings.Join(cmd, " "))
 		}

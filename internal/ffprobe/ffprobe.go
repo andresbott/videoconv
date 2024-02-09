@@ -34,7 +34,11 @@ func New(bin ...string) (FfProbe, error) {
 func (ff FfProbe) Probe(file string) (ProbeData, error) {
 
 	var cmd []string
-	cmd = append(cmd, ff.binary, "-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", file)
+	cmd = append(cmd, ff.binary, "-v", "quiet", "-print_format", "json",
+		"-show_format",
+		"-show_streams",
+		"-show_chapters",
+		file)
 	command := exec.Command(cmd[0], cmd[1:]...)
 
 	// set var to get the output
@@ -53,6 +57,7 @@ func (ff FfProbe) Probe(file string) (ProbeData, error) {
 	if err != nil {
 		return ProbeData{}, fmt.Errorf("error unmarshaling ffprobe json: %s", err)
 	}
+	data.Digest()
 
 	return data, nil
 }

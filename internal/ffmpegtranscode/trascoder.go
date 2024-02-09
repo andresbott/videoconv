@@ -29,7 +29,7 @@ func New(cfg Cfg) (*Transcoder, error) {
 }
 
 // GetCmd returns the string of the ffmpeg command that would be executed
-func (tc *Transcoder) GetCmd(input, output string, args []string) ([]string, error) {
+func (tc *Transcoder) GetCmd(input, output string, init, args []string) ([]string, error) {
 	if input == output {
 		return nil, fmt.Errorf("input cannot be the same as the output")
 	}
@@ -48,6 +48,7 @@ func (tc *Transcoder) GetCmd(input, output string, args []string) ([]string, err
 
 	var r []string
 	r = append(r, tc.ffmpeg)
+	r = append(r, init...)
 	r = append(r, "-i", inFile)
 	r = append(r, args...)
 	r = append(r, outFile)
@@ -56,9 +57,9 @@ func (tc *Transcoder) GetCmd(input, output string, args []string) ([]string, err
 }
 
 // Run will execute the ffmpeg command with all the parameters
-func (tc *Transcoder) Run(input, output string, args []string) ([]string, error) {
+func (tc *Transcoder) Run(input, output string, init, args []string) ([]string, error) {
 
-	cmd, err := tc.GetCmd(input, output, args)
+	cmd, err := tc.GetCmd(input, output, init, args)
 	if err != nil {
 		return nil, err
 	}

@@ -147,7 +147,7 @@ func TestGeneratedConfig(t *testing.T) {
 		},
 		TmplDirs: []string{
 			"/etc/videconv/templates",
-			"./sample/templates",
+			"./templates",
 		},
 	}
 

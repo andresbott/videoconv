@@ -41,6 +41,16 @@ func TestProbeVideo(t *testing.T) {
 var index0 = 0
 var index1 = 1
 var kodakProbe = ProbeData{
+	Summary: Summary{
+		Video: Video{
+			Format:   "h264",
+			H:        180,
+			W:        320,
+			BitRate:  329414,
+			BitRateM: 0.33,
+		},
+	},
+	Chapters: []Chapters{},
 	Streams: []Stream{
 		{
 			Index:            &index0,
@@ -136,11 +146,11 @@ var kodakProbe = ProbeData{
 		Size:             "93142",
 		BitRate:          "329414",
 		ProbeScore:       100,
-		Tags: FormatTags{
-			MajorBrand:       "isom",
-			MinorVersion:     "512",
-			CompatibleBrands: "isomiso2avc1mp41",
-			CreationTime:     "",
+		Tags: map[string]string{
+			"major_brand":       "isom",
+			"minor_version":     "512",
+			"compatible_brands": "isomiso2avc1mp41",
+			"encoder":           "Lavf58.20.100",
 		},
 	},
 }

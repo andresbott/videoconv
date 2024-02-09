@@ -13,6 +13,7 @@ sample-data/fail/*
 *.iml
 videoconv.yaml
 sample
+templates
 
 dist
 target

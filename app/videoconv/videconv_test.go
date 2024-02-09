@@ -19,7 +19,7 @@ func newVideConv(t *testing.T) (*Converter, string) {
 		"sample/in/nested",
 		"sample/out",
 		"sample/tmp",
-		"sample/templates",
+		"templates",
 		"sample/fail",
 	}
 	for _, d := range dirs {
@@ -51,7 +51,7 @@ func newVideConv(t *testing.T) (*Converter, string) {
 	}
 
 	for k, v := range templates {
-		err = os.WriteFile(filepath.Join(tmpDir, "sample/templates/"+k+".tmpl"), []byte(v), 0644)
+		err = os.WriteFile(filepath.Join(tmpDir, "templates/"+k+".tmpl.json"), []byte(v), 0644)
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
@@ -60,7 +60,7 @@ func newVideConv(t *testing.T) (*Converter, string) {
 	cfg := config.Conf{
 		LogLevel: "debug",
 		TmplDirs: []string{
-			filepath.Join(tmpDir, "sample/templates"),
+			filepath.Join(tmpDir, "templates"),
 		},
 
 		FfmpegPath:  config.DefaultFFmpeg,
@@ -119,7 +119,6 @@ func TestCheck(t *testing.T) {
 		"fail",
 		"in",
 		"out",
-		"templates",
 		"tmp",
 	}
 

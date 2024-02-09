@@ -20,7 +20,7 @@ func TestFindTemplate(t *testing.T) {
 			folders: []string{
 				"testdata/templates/folder1",
 			},
-			expect: "testdata/templates/folder1/tmpl1.tmpl",
+			expect: "testdata/templates/folder1/tmpl1.tmpl.json",
 		},
 		{
 			name:     "overlayed file",
@@ -29,7 +29,7 @@ func TestFindTemplate(t *testing.T) {
 				"testdata/templates/folder1",
 				"testdata/templates/folder2",
 			},
-			expect: "testdata/templates/folder2/tmpl1.tmpl",
+			expect: "testdata/templates/folder2/tmpl1.tmpl.json",
 		},
 		{
 			name:     "only existing in last",
@@ -38,7 +38,7 @@ func TestFindTemplate(t *testing.T) {
 				"testdata/templates/folder1",
 				"testdata/templates/folder2",
 			},
-			expect: "testdata/templates/folder2/tmpl2.tmpl",
+			expect: "testdata/templates/folder2/tmpl2.tmpl.json",
 		},
 		{
 			name:     "not found",
@@ -95,7 +95,7 @@ func TestTemplateArgs(t *testing.T) {
 	}{
 		{
 			name:     "find file",
-			tmplFile: "testdata/templates/tc_simple.tmpl",
+			tmplFile: "testdata/templates/tc_simple.tmpl.json",
 			data: data{
 				Key: "SomeValue",
 			},
