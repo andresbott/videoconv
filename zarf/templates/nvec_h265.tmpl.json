@@ -1,0 +1,52 @@
+{{/*
+Variables:
+smallBR: 1500000  # used for videos <480
+medBR: 1900000    # used for vides > 720 but not 1080
+highBR: 2200000   # used for videos >= 1080
+
+TODO: make audio config
+
+*/}}
+
+{"args":[
+
+{{ if lt .Video.Summary.Video.H 720 }}
+        {{ $_ := set .LocalData "BitRate" .Profile.smallBR }}
+{{ else if and  (ge .Video.Summary.Video.H 720) (lt .Video.Summary.Video.H 1080)}}
+        {{ $_ := set .LocalData "BitRate" .Profile.medBR }}
+{{ else }}
+        {{ $_ := set .LocalData "BitRate" .Profile.highBR }}
+{{ end }}
+
+
+{{if ( gt .Video.Summary.Video.BitRate ( .LocalData.BitRate | toDecimal ) ) }}
+        "-c:v","hevc_nvenc",
+        "-preset","slow",
+
+        "-b:v", "{{ .LocalData.BitRate  }}",
+        "-maxrate:v","{{ (mulf ( .LocalData.BitRate  | float64 ) 1.25) | int }}",
+        "-bufsize:v","8M",
+
+        "-profile:v","main",
+        "-rc:v","vbr",
+        "-rc-lookahead:v","32",
+        "-spatial_aq:v","1",
+        "-aq-strength:v","15",
+
+
+        {{/* scale to 1080 */}}
+        {{ if gt .Video.Summary.Video.H 1080 }}
+        "-vf", "scale=-1:1080:flags=lanczos",
+        {{ end }}
+
+
+{{ else }}
+        "-c:v","copy",
+{{ end }}
+"-map","0",
+
+""
+]
+}
+
+
