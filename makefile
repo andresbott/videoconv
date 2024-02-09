@@ -17,5 +17,18 @@ build: ## Build the binary
 package: ## build installable packages
 	@goreleaser release --rm-dist --skip-publish --skip-validate
 
+check_env: # check for needed envs
+ifndef GITHUB_TOKEN
+	$(error GITHUB_TOKEN is undefined, create one with repo permissions here: https://github.com/settings/tokens/new?scopes=repo,write:packages)
+endif
+
+release: check_env test ## release a new version of goback
+	@git diff --quiet || ( echo 'git is in dirty state' ; exit 1 )
+	@[ "${version}" ] || ( echo ">> version is not set, usage: make release version=\"v1.2.3\" "; exit 1 )
+	@git tag -d $(version) || true
+	@git tag -a $(version) -m "Release version: $(version)"
+	@git push origin $(version)
+	@goreleaser --rm-dist
+
 help: ## Show this help
 	@egrep '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST)  | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m·%-20s\033[0m %s\n", $$1, $$2}'
