@@ -16,8 +16,9 @@ type templateData struct {
 }
 
 type videoData struct {
-	Video   ffprobe.ProbeData
-	Profile map[string]string
+	Video     ffprobe.ProbeData
+	Profile   map[string]string
+	LocalData map[string]interface{}
 }
 
 func ProbeCmd() *cobra.Command {
@@ -45,8 +46,9 @@ func ProbeCmd() *cobra.Command {
 				return err
 			}
 			data := videoData{
-				Video:   probeData,
-				Profile: map[string]string{},
+				Video:     probeData,
+				Profile:   map[string]string{},
+				LocalData: map[string]interface{}{},
 			}
 
 			// print the raw data passed into the template
