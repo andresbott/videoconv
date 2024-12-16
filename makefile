@@ -12,7 +12,7 @@ test: fmt ## Run tests
 
 build: ## Build the binary
 	@mkdir -p target
-	@go build -o target/videconv main.go
+	@go build -o target/videoconv main.go
 
 package: ## build installable packages
 	@goreleaser release --rm-dist --skip-publish --skip-validate
