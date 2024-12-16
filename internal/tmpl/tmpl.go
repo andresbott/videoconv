@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"text/template"
 
@@ -34,11 +35,27 @@ type TemplateNotFoundErr struct {
 	tmpl string
 }
 
+// https://stackoverflow.com/questions/44675087/golang-template-variable-isset
+// use like: {{if (isset "Email" .)}}
+func isset(name string, data interface{}) bool {
+	v := reflect.ValueOf(data)
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+	if v.Kind() != reflect.Struct {
+		return false
+	}
+	return v.FieldByName(name).IsValid()
+}
+
 func (tmpl Template) ParseJson(data, target any) error {
 	tpl := tmpl.tmplStr
 	tpl = strings.ReplaceAll(tpl, "\n", " ")
 
-	t, err := template.New("videoTmpl").Funcs(sprig.FuncMap()).Parse(tpl)
+	funcMap := sprig.FuncMap()
+	funcMap["isset"] = isset
+
+	t, err := template.New("videoTmpl").Funcs(funcMap).Parse(tpl)
 	if err != nil {
 		return fmt.Errorf("unable to parse template: %s", err)
 	}
