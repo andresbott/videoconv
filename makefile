@@ -15,7 +15,7 @@ build: ## Build the binary
 	@go build -o target/videoconv main.go
 
 package: ## build installable packages
-	@goreleaser release --rm-dist --skip-publish --skip-validate
+	@goreleaser release --auto-snapshot --clean
 
 check_env: # check for needed envs
 ifndef GITHUB_TOKEN

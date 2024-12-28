@@ -194,7 +194,7 @@ type videoData struct {
 func (vc *Converter) processVideo(absVideo, absIn, absOut, absTmp, absFail string, profiles []config.Profile) {
 	log.Infof("procesing video: \"%s\"", filepath.Base(absVideo))
 
-	cmd := []string{}
+	cmd := ffmpegtranscode.CmdArgs{}
 	err := func() error {
 
 		probeData, err := vc.ffprobe.Probe(absVideo)
@@ -248,7 +248,7 @@ func (vc *Converter) processVideo(absVideo, absIn, absOut, absTmp, absFail strin
 			if err != nil {
 				return fmt.Errorf("error trancoding video: %v", err)
 			}
-			log.Debugf("ffmpeg cmd: \"%s\"", cmd)
+			log.Debugf("ffmpeg cmd: %s", cmd.String())
 			doneVideos = append(doneVideos, tmpFilePath)
 		}
 
@@ -293,8 +293,8 @@ func (vc *Converter) processVideo(absVideo, absIn, absOut, absTmp, absFail strin
 		}
 
 		log.Errorf("Error transcoding video: \"%s\", %s", relativePath, err)
-		if len(cmd) > 0 {
-			log.Errorf("command run: \"%s\"", strings.Join(cmd, " "))
+		if len(cmd.Slice()) > 0 {
+			log.Errorf("command run: %s", cmd.String())
 		}
 
 		// create output directories
@@ -305,6 +305,12 @@ func (vc *Converter) processVideo(absVideo, absIn, absOut, absTmp, absFail strin
 				panic(fmt.Errorf("unable to create folder \"%s\" during error handling, error: %v ", failPath, err3))
 			}
 		}
+
+		if vc.Cfg.LogLevel == "debug" {
+			log.Info("Running in Debug mode, not moving the file")
+			os.Exit(1)
+		}
+
 		// move failed video
 		failOut := filepath.Join(failPath, filepath.Base(absVideo))
 		err = os.Rename(absVideo, failOut)
